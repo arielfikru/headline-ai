@@ -254,9 +254,122 @@ class HeadlineGenerator:
 
         return lines
 
-    def create_post_design(self, background_img, title, source_name, output_path, brand_text=None):
-        """Create the final post design with AI-extracted source name"""
-        print("Creating post design...")
+    def create_post_design_layout2(self, background_img, title, source_name, output_path, brand_text=None):
+        """Create post design with Layout 2 - Modern gradient overlay style"""
+        print("Creating post design (Layout 2 - Modern Gradient)...")
+
+        # Resize and crop background image to fill canvas
+        target_size = (config.IMAGE_WIDTH, config.IMAGE_HEIGHT)
+        img_ratio = background_img.width / background_img.height
+        target_ratio = target_size[0] / target_size[1]
+
+        if img_ratio > target_ratio:
+            new_height = target_size[1]
+            new_width = int(new_height * img_ratio)
+        else:
+            new_width = target_size[0]
+            new_height = int(new_width / img_ratio)
+
+        background_img = background_img.resize((new_width, new_height), Image.Resampling.LANCZOS)
+
+        # Crop to center
+        left = (new_width - target_size[0]) // 2
+        top = (new_height - target_size[1]) // 2
+        background_img = background_img.crop((left, top, left + target_size[0], top + target_size[1]))
+
+        # Convert to RGBA for overlay support
+        background_img = background_img.convert('RGBA')
+
+        # Create overlay layer
+        overlay = Image.new('RGBA', target_size, (0, 0, 0, 0))
+        draw = ImageDraw.Draw(overlay)
+
+        # Load fonts
+        try:
+            title_font = ImageFont.truetype(config.TITLE_FONT_PATH, config.TITLE_FONT_SIZE)
+            source_font = ImageFont.truetype(config.SOURCE_FONT_PATH, config.SOURCE_FONT_SIZE)
+        except:
+            title_font = ImageFont.load_default()
+            source_font = ImageFont.load_default()
+
+        # 1. Draw source logo/text at top right
+        if source_name:
+            source_bbox = draw.textbbox((0, 0), source_name, font=source_font)
+            source_width = source_bbox[2] - source_bbox[0]
+            source_x = config.IMAGE_WIDTH - source_width - config.LAYOUT2_BADGE_MARGIN
+            source_y = config.LAYOUT2_BADGE_MARGIN
+
+            draw.text(
+                (source_x, source_y),
+                source_name,
+                fill=(255, 255, 255, 240),  # White with slight transparency
+                font=source_font
+            )
+
+        # 2. Draw gradient overlay at bottom (taller and more opaque)
+        gradient_height = config.LAYOUT2_GRADIENT_HEIGHT
+        for i in range(gradient_height):
+            # Create gradient from transparent to dark
+            # More aggressive gradient curve for better opacity at top
+            progress = i / gradient_height
+            # Use power curve for more opacity earlier
+            alpha = int((progress ** 0.7) * config.LAYOUT2_GRADIENT_COLOR[3])
+            color = (config.LAYOUT2_GRADIENT_COLOR[0],
+                    config.LAYOUT2_GRADIENT_COLOR[1],
+                    config.LAYOUT2_GRADIENT_COLOR[2],
+                    alpha)
+            y_pos = config.IMAGE_HEIGHT - gradient_height + i
+            draw.line([(0, y_pos), (config.IMAGE_WIDTH, y_pos)], fill=color, width=1)
+
+        # 3. Draw headline text at bottom over gradient (positioned higher)
+        max_width = config.IMAGE_WIDTH - (config.BOX_MARGIN * 2)
+        wrapped_lines = self.wrap_text(title, title_font, max_width)
+
+        # Calculate total text height
+        total_height = len(wrapped_lines) * config.LINE_HEIGHT
+        # Position text higher up in the gradient area
+        start_y = config.IMAGE_HEIGHT - gradient_height + 80
+
+        # Draw each line
+        for i, line in enumerate(wrapped_lines):
+            y = start_y + (i * config.LINE_HEIGHT)
+            draw.text(
+                (config.BOX_MARGIN, y),
+                line,
+                fill=config.LAYOUT2_TEXT_COLOR,
+                font=title_font
+            )
+
+        # 4. Optional: Draw brand text at bottom left if provided
+        if brand_text:
+            brand_y = config.IMAGE_HEIGHT - config.BOX_MARGIN - 10
+            draw.text(
+                (config.BOX_MARGIN, brand_y),
+                brand_text,
+                fill=(255, 255, 255, 200),
+                font=source_font
+            )
+
+        # Composite overlay onto background
+        background_img = Image.alpha_composite(background_img, overlay)
+
+        # Convert to RGB and save
+        background_img = background_img.convert('RGB')
+        background_img.save(output_path, config.OUTPUT_FORMAT, quality=config.OUTPUT_QUALITY)
+        print(f"Post saved to: {output_path}")
+
+    def create_post_design(self, background_img, title, source_name, output_path, brand_text=None, layout="layout1"):
+        """Create the final post design with AI-extracted source name
+
+        Args:
+            layout: "layout1" (white box) or "layout2" (news update)
+        """
+        # Route to appropriate layout
+        if layout == "layout2":
+            return self.create_post_design_layout2(background_img, title, source_name, output_path, brand_text)
+
+        # Default: Layout 1 (original white box design)
+        print("Creating post design (Layout 1 - White Box)...")
 
         # Resize and crop background image
         target_size = (config.IMAGE_WIDTH, config.IMAGE_HEIGHT)
@@ -389,7 +502,7 @@ class HeadlineGenerator:
         background_img.save(output_path, config.OUTPUT_FORMAT, quality=config.OUTPUT_QUALITY)
         print(f"Post saved to: {output_path}")
 
-    def generate_post(self, url, output_filename=None, brand_text=None, style="clickbait", show_source=None):
+    def generate_post(self, url, output_filename=None, brand_text=None, style="clickbait", show_source=None, layout="layout1"):
         """Main method to generate post from URL
 
         Args:
@@ -398,6 +511,7 @@ class HeadlineGenerator:
             brand_text: Brand text for bottom left (optional)
             style: Headline style - clickbait, formal, casual, question, storytelling
             show_source: Override SHOW_SOURCE config (True/False/None for default)
+            layout: Layout style - "layout1" (white box) or "layout2" (news update)
         """
         try:
             # Get brand text from parameter, environment variable, or None
@@ -456,7 +570,8 @@ class HeadlineGenerator:
                 article_data['title'],
                 source_name,
                 output_path,
-                brand_text=brand_text
+                brand_text=brand_text,
+                layout=layout
             )
 
             # Restore original config
@@ -488,6 +603,8 @@ Examples:
   python headline_generator.py https://example.com/article --brand "My Brand" -o output.png
   python headline_generator.py https://example.com/article --hide-source
   python headline_generator.py https://example.com/article --style formal --hide-source
+  python headline_generator.py https://example.com/article --layout layout2
+  python headline_generator.py https://example.com/article --style clickbait --layout layout2
         """
     )
 
@@ -500,6 +617,10 @@ Examples:
                         choices=['clickbait', 'formal', 'casual', 'question', 'storytelling'],
                         default='clickbait',
                         help='Headline style (default: clickbait)')
+    parser.add_argument('-l', '--layout', dest='layout',
+                        choices=['layout1', 'layout2'],
+                        default='layout1',
+                        help='Layout style: layout1 (white box) or layout2 (news update)')
     parser.add_argument('--hide-source', dest='hide_source',
                         action='store_true',
                         help='Hide source attribution (overrides config)')
@@ -516,9 +637,10 @@ Examples:
     elif args.show_source:
         show_source_override = True
 
-    # Show available styles if requested
+    # Show configuration
     print(f"\nUsing style: {config.HEADLINE_STYLES[args.style]['name']}")
     print(f"Description: {config.HEADLINE_STYLES[args.style]['description']}")
+    print(f"Layout: {config.AVAILABLE_LAYOUTS[args.layout]['name']}")
     if show_source_override is not None:
         print(f"Source attribution: {'ON' if show_source_override else 'OFF'}")
     print()
@@ -529,7 +651,8 @@ Examples:
         output_filename=args.output_filename,
         brand_text=args.brand_text,
         style=args.style,
-        show_source=show_source_override
+        show_source=show_source_override,
+        layout=args.layout
     )
 
     print(f"\n✓ Successfully generated post: {output_path}")

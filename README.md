@@ -1,252 +1,713 @@
-# Headline AI - News Post Generator
+# Headline AI - Generator Post Berita Otomatis
 
-Generate beautiful social media posts from news articles automatically using AI.
+Generate post social media yang menarik dari artikel berita secara otomatis menggunakan AI.
 
-## Features
+![Version](https://img.shields.io/badge/version-1.3.0-blue)
+![Python](https://img.shields.io/badge/python-3.7+-green)
+![License](https://img.shields.io/badge/license-MIT-orange)
 
-- Fetch article content from any URL
-- Extract title and main image using Gemini AI
-- Create Instagram-style posts (1080x1350px)
-- Automatic text wrapping and layout
-- Source attribution
-- Professional design with white text box overlay
+## 📌 Fitur Utama
 
-## Installation
+### 🤖 AI-Powered Generation
+- **Gemini AI** untuk ekstraksi konten dan headline generation
+- **AI Source Extraction** - Gemini otomatis identifikasi nama media (bukan domain mentah)
+- **5 Style Headline** berbeda (Clickbait, Formal, Casual, Question, Storytelling)
+- **2 Layout Design** (White Box Classic & News Update Modern)
 
-1. Install dependencies:
+### 🎨 Design & Layout
+- **Layout 1: White Box (Classic)** - Clean dengan white overlay box
+- **Layout 2: News Update (Modern)** - Badge + gradient overlay style
+- **Ukuran Instagram Portrait** (1080x1350px) - langsung upload ready
+- **Auto image extraction** dari artikel dengan multiple fallback
+- **Text wrapping otomatis** untuk headline panjang
+
+### ⚙️ Customization
+- **Semua konfigurasi di config.py** - no hardcoded values!
+- **Custom branding** support (optional)
+- **Source attribution** yang bisa di-toggle on/off
+- **Badge text customizable** untuk Layout 2
+- **Warna dan spacing** semuanya adjustable
+
+### 🌐 Dual Interface
+- **Web UI (Recommended)** - Dark mode, responsive, real-time progress
+- **CLI** - Untuk automation dan scripting
+- **Python API** - Integrate ke aplikasi sendiri
+
+---
+
+## 🚀 Quick Start
+
+### 1. Install Dependencies
 ```bash
 pip install -r requirements.txt
 ```
 
-2. Create `.env` file:
+### 2. Setup API Key
 ```bash
-cp .env.example .env
+# Buat file .env
+echo "GEMINI_API_KEY=your_api_key_here" > .env
 ```
 
-3. Add your Gemini API key to `.env`:
-```
-GEMINI_API_KEY=your_api_key_here
-```
+**Dapatkan API Key gratis di:** https://ai.google.dev/
 
-## Usage
-
-### 🌐 Web Interface (Recommended)
-
-**NEW!** Gunakan Web UI untuk experience yang lebih mudah:
-
+### 3. Run Web UI (Recommended)
 ```bash
-# Quick start
-./run_web.sh
-
-# Or manually
 python app.py
 ```
 
-Buka browser di `http://localhost:5000`
+Buka browser: **http://localhost:5000**
 
-**Features:**
-- ✨ Dark mode interface yang clean
-- 📱 Responsive design (mobile & desktop)
-- ⚡ Simple mode: Input API key sekali, langsung generate
-- ⚙️ Advanced mode: Edit semua config dari browser
-- 🖼️ Gallery untuk lihat semua hasil
-- 📊 Real-time progress tracking
-
-**Lihat [WEB_UI_GUIDE.md](WEB_UI_GUIDE.md) untuk dokumentasi lengkap!**
+### 4. Atau Gunakan CLI
+```bash
+python headline_generator.py https://www.kompas.com/artikel-example
+```
 
 ---
 
-### Command Line
+## 🌐 Web Interface
 
-```bash
-python headline_generator.py <article_url> [options]
-```
+### Screenshot & Features
 
-**Options:**
-- `-o, --output FILENAME` - Custom output filename
-- `-b, --brand TEXT` - Brand text to show in bottom left corner
-- `-s, --style STYLE` - Headline style: `clickbait`, `formal`, `casual`, `question`, `storytelling`
-- `-h, --help` - Show help message
+**Web UI** menyediakan interface yang mudah dengan fitur lengkap:
 
-**Examples:**
+✨ **Features:**
+- Dark mode interface yang modern dan clean
+- Responsive design (mobile & desktop friendly)
+- Real-time progress tracking saat generate
+- Gallery untuk melihat semua hasil
+- Settings panel untuk edit konfigurasi
+- Simple mode: Sekali input API key, langsung generate
 
-```bash
-# Basic usage (default: clickbait)
-python headline_generator.py https://www.example.com/news/article
+### Cara Pakai Web UI
 
-# With formal style
-python headline_generator.py https://www.example.com/news/article --style formal
+1. **Setup API Key** (pertama kali saja)
+   - Klik tab "Settings"
+   - Input Gemini API key
+   - Klik "Save API Key"
 
-# With question style
-python headline_generator.py https://www.example.com/news/article -s question
+2. **Generate Post**
+   - Klik tab "Generate"
+   - Paste URL artikel berita
+   - Pilih **Headline Style**:
+     - 🔥 Clickbait - Sensational & viral
+     - 📰 Formal - Professional & factual
+     - 💬 Casual - Friendly & conversational
+     - ❓ Question - Engaging questions
+     - 📖 Storytelling - Narrative & emotional
+   - Pilih **Layout Style**:
+     - 📄 White Box (Classic)
+     - 🎨 News Update (Modern) - **NEW!**
+   - (Optional) Tambah brand text
+   - Klik "Generate Post"
 
-# All options combined
-python headline_generator.py https://www.example.com/news/article \
-    --style storytelling \
-    --brand "MyBrand" \
-    -o output.png
-```
+3. **Lihat Hasil di Gallery**
+   - Klik tab "Gallery"
+   - Download atau delete hasil
+   - Badge "NEW" untuk post < 24 jam
 
-### 🎨 **5 Headline Styles Available:**
+### Advanced Settings
 
-| Style | Description | Best For |
-|-------|-------------|----------|
-| 🔥 **Clickbait** | Sensational, curiosity-driven | Viral content, social media |
-| 📰 **Formal** | Professional, journalistic | News portals, corporate |
-| 💬 **Casual** | Friendly, conversational | Blogs, lifestyle |
-| ❓ **Question** | Engaging questions | Educational, discussion |
-| 📖 **Storytelling** | Narrative, emotional | Human interest, features |
+Di tab **Settings**, kamu bisa customize:
+- Image dimensions (Instagram Portrait/Square/Story, Twitter, dll)
+- Font sizes dan typography
+- Layout spacing (margin, padding, radius)
+- AI temperature per style
+- **System prompts untuk tiap headline style** (Advanced!)
+- Source attribution settings
+- Image extraction parameters
 
-**Lihat [HEADLINE_STYLES.md](HEADLINE_STYLES.md) untuk guide lengkap dengan examples!**
+**Dokumentasi lengkap:** [WEB_UI_GUIDE.md](WEB_UI_GUIDE.md)
 
 ---
 
-### Python API
+## 💻 Command Line Interface (CLI)
+
+### Syntax Dasar
+```bash
+python headline_generator.py <url> [options]
+```
+
+### Options Lengkap
+```
+-o, --output FILENAME    Output filename custom
+-b, --brand TEXT         Brand text untuk branding
+-s, --style STYLE        Headline style (clickbait/formal/casual/question/storytelling)
+-l, --layout LAYOUT      Layout style (layout1/layout2)
+--hide-source            Hide source attribution
+--show-source            Show source attribution
+-h, --help              Show help message
+```
+
+### Contoh Penggunaan
+
+#### Basic
+```bash
+# Generate dengan default settings (clickbait + layout1)
+python headline_generator.py https://www.kompas.com/artikel
+
+# Output akan di save ke: output/post_[title].png
+```
+
+#### Dengan Style
+```bash
+# Formal style untuk berita profesional
+python headline_generator.py https://www.detik.com/artikel --style formal
+
+# Casual style untuk konten santai
+python headline_generator.py https://example.com/artikel -s casual
+
+# Question style untuk engagement
+python headline_generator.py https://example.com/artikel -s question
+```
+
+#### Dengan Layout
+```bash
+# Layout 2 (News Update - Modern)
+python headline_generator.py https://www.kompas.com/artikel --layout layout2
+
+# Kombinasi style + layout
+python headline_generator.py https://www.cnnindonesia.com/artikel \
+    --style clickbait \
+    --layout layout2
+```
+
+#### Dengan Branding
+```bash
+# Tambah brand text
+python headline_generator.py https://example.com/artikel --brand "MyBrand"
+
+# Hide source attribution
+python headline_generator.py https://example.com/artikel --hide-source
+
+# Full combination
+python headline_generator.py https://www.kompas.com/artikel \
+    --style formal \
+    --layout layout2 \
+    --brand "MyMedia" \
+    --show-source \
+    -o hasil_berita.png
+```
+
+### Output
+Hasil akan disimpan di folder `output/` dengan format:
+```
+output/post_[judul-artikel].png
+```
+
+---
+
+## 🎨 Headline Styles - 5 Pilihan
+
+Setiap style punya karakteristik dan AI prompt yang berbeda:
+
+### 1️⃣ Clickbait (Temperature: 0.9)
+**Tujuan:** Viral, sensational, curiosity-driven
+
+**Contoh:**
+- "Gak Nyangka! Ternyata Ini Alasan Kenapa..."
+- "Viral! Kejadian Ini Bikin Netizen Heboh"
+- "Berani Coba? Fakta Mengejutkan Tentang..."
+
+**Best for:** Social media, viral content, entertainment
+
+### 2️⃣ Formal (Temperature: 0.3)
+**Tujuan:** Professional, journalistic, factual
+
+**Contoh:**
+- "Pemerintah Umumkan Kebijakan Baru Soal..."
+- "Pakar: Ekonomi Indonesia Diprediksi..."
+- "Studi Terbaru: Temuan Penelitian Menunjukkan..."
+
+**Best for:** News portals, corporate, official announcements
+
+### 3️⃣ Casual (Temperature: 0.7)
+**Tujuan:** Friendly, conversational, approachable
+
+**Contoh:**
+- "Eh, Ternyata Fakta Menarik Ini Lho!"
+- "Akhirnya! Event yang Ditunggu-tunggu"
+- "Seru Nih: Topik yang Lagi Rame Dibahas"
+
+**Best for:** Lifestyle blogs, community content, relatable stories
+
+### 4️⃣ Question (Temperature: 0.8)
+**Tujuan:** Engaging, curiosity-provoking
+
+**Contoh:**
+- "Kenapa Topik Ini Jadi Viral?"
+- "Apa yang Terjadi Kalau Skenario Ini Terjadi?"
+- "Siapa Sangka Subjek Ini Bisa Aksi Begitu?"
+
+**Best for:** Educational content, discussion starters, engagement
+
+### 5️⃣ Storytelling (Temperature: 0.8)
+**Tujuan:** Narrative, emotional, humanistic
+
+**Contoh:**
+- "Kisah Inspiratif di Balik Kejadian Ini"
+- "Dari Kondisi Sulit Hingga Sukses Gemilang"
+- "Perjuangan Melawan Tantangan yang Luar Biasa"
+
+**Best for:** Human interest stories, features, emotional content
+
+**Guide lengkap:** [HEADLINE_STYLES.md](HEADLINE_STYLES.md)
+
+---
+
+## 📐 Layout Styles - 2 Pilihan
+
+### Layout 1: White Box (Classic)
+
+**Karakteristik:**
+- White overlay box di tengah/bawah
+- Text hitam di dalam box
+- Source attribution di bottom right
+- Brand text di bottom left (optional)
+- Clean dan professional
+
+**Visual:**
+```
+┌─────────────────────────────┐
+│                             │
+│   [Background Image]        │
+│   (Slightly Darkened)       │
+│                             │
+│  ┌──────────────────────┐   │
+│  │ Headline Text Here   │   │
+│  │                      │   │
+│  │ Brand     Sumber: XX │   │
+│  └──────────────────────┘   │
+└─────────────────────────────┘
+```
+
+**Best for:** Professional content, news articles, formal announcements
+
+### Layout 2: News Update (Modern) - **NEW!**
+
+**Karakteristik:**
+- Badge "NEWS UPDATE" di top left (red background)
+- Source logo di top right (AI-extracted)
+- Full background image (no darkening)
+- Gradient overlay di bottom
+- Text putih di atas gradient
+- Modern dan eye-catching
+
+**Visual:**
+```
+┌─────────────────────────────┐
+│ ┌───────────┐      Kompas   │
+│ │NEWS UPDATE│               │
+│ └───────────┘               │
+│                             │
+│   [Full Background Image]   │
+│                             │
+│ ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓ │
+│ ▓ Headline Text Putih     ▓ │
+│ ▓ Di Atas Gradient        ▓ │
+└─────────────────────────────┘
+```
+
+**Best for:** Breaking news, viral content, social media stories
+
+**Dokumentasi lengkap:** [LAYOUT2_DOCUMENTATION.md](LAYOUT2_DOCUMENTATION.md)
+
+---
+
+## 🤖 AI Source Extraction
+
+Sistem sekarang menggunakan **Gemini AI** untuk mengidentifikasi nama media, bukan hanya parsing domain!
+
+### Sebelumnya (Manual Domain Parsing)
+```
+URL: https://www.kompas.com/artikel
+Output: Sumber: www.kompas.com  ← Domain mentah
+```
+
+### Sekarang (AI Extraction)
+```
+URL: https://www.kompas.com/artikel
+Output: Sumber: Kompas  ← Nama media yang clean!
+```
+
+### Contoh Hasil
+
+| URL | AI-Extracted Source |
+|-----|---------------------|
+| www.kompas.com | **Kompas** |
+| news.detik.com | **Detik** |
+| www.cnnindonesia.com | **CNN Indonesia** |
+| katadata.co.id | **Katadata** |
+| tirto.id | **Tirto** |
+
+**Keuntungan:**
+- ✅ Lebih user-friendly dan professional
+- ✅ Konsisten untuk semua media
+- ✅ AI bisa identify dari HTML metadata
+- ✅ Fallback ke domain jika AI gagal
+- ✅ No manual mapping needed!
+
+**Dokumentasi:** [AI_SOURCE_EXTRACTION.md](AI_SOURCE_EXTRACTION.md)
+
+---
+
+## 🐍 Python API
+
+Integrate ke aplikasi Python kamu sendiri:
 
 ```python
 from headline_generator import HeadlineGenerator
 
-# Initialize generator
+# Initialize
 generator = HeadlineGenerator()
 
-# Generate post (basic - default clickbait)
+# Basic - default settings
 output_path = generator.generate_post(
-    url="https://www.example.com/news/article"
+    url="https://www.kompas.com/artikel"
 )
 
-# Generate with formal style
+# Dengan style
 output_path = generator.generate_post(
-    url="https://www.example.com/news/article",
-    style="formal"
+    url="https://www.detik.com/artikel",
+    style="formal"  # clickbait/formal/casual/question/storytelling
 )
 
-# Generate with question style and branding
+# Dengan layout
 output_path = generator.generate_post(
-    url="https://www.example.com/news/article",
-    style="question",
-    brand_text="MyBrand"
+    url="https://www.cnnindonesia.com/artikel",
+    style="clickbait",
+    layout="layout2"  # layout1 (default) or layout2
 )
 
-# Generate post with all options
+# Full options
 output_path = generator.generate_post(
-    url="https://www.example.com/news/article",
+    url="https://example.com/artikel",
     output_filename="my_post.png",
-    brand_text="My Brand"
+    brand_text="MyBrand",
+    style="storytelling",
+    layout="layout2",
+    show_source=True  # True/False/None (use config)
 )
 
-print(f"Post created: {output_path}")
+print(f"✓ Post created: {output_path}")
 ```
 
-### Using Environment Variables
+### Batch Processing
+```python
+urls = [
+    "https://www.kompas.com/artikel1",
+    "https://www.detik.com/artikel2",
+    "https://www.cnnindonesia.com/artikel3"
+]
 
-You can set a default brand text in your `.env` file:
+generator = HeadlineGenerator()
 
-```bash
-GEMINI_API_KEY=your_api_key_here
-BRAND_TEXT=MyBrand
+for url in urls:
+    try:
+        output = generator.generate_post(
+            url=url,
+            style="clickbait",
+            layout="layout2"
+        )
+        print(f"✓ Generated: {output}")
+    except Exception as e:
+        print(f"✗ Failed {url}: {e}")
 ```
 
-When `BRAND_TEXT` is set in `.env`, it will be used automatically unless overridden by the `--brand` parameter.
+---
 
-## How It Works
+## ⚙️ Configuration
 
-1. **Fetch Article**: Downloads HTML content from the provided URL
-2. **AI Analysis**: Uses Gemini AI to:
-   - Extract article title/headline
-   - Find the main article image
-   - Generate summary if needed
-3. **Image Processing**: Downloads article image and resizes to 1080x1350
-4. **Design Creation**:
-   - Creates white overlay box for text
-   - Adds wrapped headline text
-   - Adds branding in bottom left (if specified)
-   - Adds source attribution in bottom right
-5. **Export**: Saves final design as PNG in `output/` folder
+### Lokasi Konfigurasi
 
-## Project Structure
+**Semua settings ada di `config.py`** - JANGAN edit hardcoded values di script!
+
+### Kategori Settings
+
+#### 1. Image Settings
+```python
+IMAGE_WIDTH = 1080
+IMAGE_HEIGHT = 1350  # Instagram Portrait
+
+# Preset lain:
+# 1080 x 1080  - Instagram Square
+# 1080 x 1920  - Instagram Story
+# 1200 x 675   - Twitter
+```
+
+#### 2. Font Settings
+```python
+TITLE_FONT_SIZE = 48
+SOURCE_FONT_SIZE = 24
+TITLE_FONT_PATH = "/path/to/font.ttf"
+```
+
+#### 3. Colors (RGBA)
+```python
+WHITE_BOX_COLOR = (255, 255, 255, 240)  # White box
+TEXT_COLOR = (0, 0, 0, 255)  # Black text
+SOURCE_COLOR = (100, 100, 100, 255)  # Gray
+BRAND_COLOR = (50, 50, 50, 255)  # Dark gray
+```
+
+#### 4. Layout Spacing
+```python
+BOX_MARGIN = 40    # Distance from edge
+BOX_PADDING = 30   # Padding inside box
+BOX_RADIUS = 20    # Corner radius
+LINE_HEIGHT = 60   # Space between lines
+```
+
+#### 5. Branding & Source
+```python
+SHOW_SOURCE = True  # Toggle source attribution
+SOURCE_TEXT = "Sumber"  # Label text
+SHOW_BRAND = False
+BRAND_TEXT = ""
+```
+
+#### 6. Layout 2 Settings
+```python
+LAYOUT2_BADGE_TEXT = "NEWS UPDATE"
+LAYOUT2_BADGE_BG_COLOR = (220, 20, 60, 255)  # Red
+LAYOUT2_GRADIENT_HEIGHT = 400
+LAYOUT2_TEXT_COLOR = (255, 255, 255, 255)  # White
+```
+
+#### 7. AI Settings
+```python
+GEMINI_MODEL = "models/gemini-flash-latest"
+GEMINI_TEMPERATURE = 0.9  # Per style bisa beda
+```
+
+#### 8. Headline Styles (Advanced)
+```python
+HEADLINE_STYLES = {
+    "clickbait": {
+        "name": "Clickbait",
+        "temperature": 0.9,
+        "prompt": """..."""  # Custom prompt
+    },
+    # ... 4 styles lainnya
+}
+```
+
+**Guide lengkap:** [CONFIG_GUIDE.md](CONFIG_GUIDE.md)
+
+---
+
+## 📁 Project Structure
 
 ```
 headline-ai/
-├── headline_generator.py  # Main script
-├── requirements.txt       # Python dependencies
-├── .env.example          # Environment variables template
-├── .env                  # Your API keys (git-ignored)
-├── .gitignore           # Git ignore rules
-├── output/              # Generated posts
-└── temp_images/         # Temporary image storage
+├── headline_generator.py      # Core generator script
+├── app.py                     # Flask web server
+├── config.py                  # ⚙️ SEMUA KONFIGURASI DI SINI
+├── requirements.txt           # Python dependencies
+├── .env                       # API keys (git-ignored)
+├── .env.example               # Template .env
+│
+├── templates/                 # Web UI templates
+│   ├── base.html             # Base template (dark mode)
+│   ├── index.html            # Generate page
+│   ├── gallery.html          # Gallery page
+│   └── settings.html         # Settings page
+│
+├── output/                    # 📁 Generated posts
+├── web_settings.json         # Web UI settings cache
+│
+├── README.md                 # 📖 Dokumentasi utama (ini!)
+├── CONFIG_GUIDE.md           # Guide konfigurasi
+├── WEB_UI_GUIDE.md           # Guide Web UI
+├── HEADLINE_STYLES.md        # Guide 5 headline styles
+├── LAYOUT2_DOCUMENTATION.md  # Guide Layout 2
+├── AI_SOURCE_EXTRACTION.md   # Guide AI source extraction
+└── SOURCE_ATTRIBUTION_UPDATE.md  # Guide source customization
 ```
 
-## Configuration
+---
 
-### All Settings in config.py
+## 🔧 Troubleshooting
 
-**IMPORTANT:** Semua konfigurasi sekarang ada di `config.py`. JANGAN edit hardcoded values di `headline_generator.py`.
-
-Edit `config.py` untuk mengubah:
-
-- **Image dimensions**: `IMAGE_WIDTH`, `IMAGE_HEIGHT`
-- **Font settings**: `TITLE_FONT_SIZE`, font paths, etc
-- **Colors**: `WHITE_BOX_COLOR`, `TEXT_COLOR`, `BRAND_COLOR`, etc
-- **Box styling**: `BOX_MARGIN`, `BOX_PADDING`, `BOX_RADIUS`
-- **AI settings**: `GEMINI_MODEL`, `GEMINI_TEMPERATURE`
-- **AI Prompt**: `AI_PROMPT_TEMPLATE` - customize clickbait style
-- **Image extraction**: `MIN_IMAGE_WIDTH`, `MAX_IMAGE_CANDIDATES`
-- **Output**: Format, quality, directories
-
-**Lihat [CONFIG_GUIDE.md](CONFIG_GUIDE.md) untuk panduan lengkap!**
-
-### Quick Examples
-
-```python
-# config.py
-
-# Ubah ukuran ke Instagram Square
-IMAGE_WIDTH = 1080
-IMAGE_HEIGHT = 1080
-
-# Ubah style prompt jadi lebih formal
-GEMINI_TEMPERATURE = 0.3
-AI_PROMPT_TEMPLATE = """Buat headline FORMAL..."""
-
-# Ubah warna
-WHITE_BOX_COLOR = (240, 240, 240, 250)
-BRAND_COLOR = (255, 0, 0, 255)  # Red branding
+### API Key Error
+```
+Error: GEMINI_API_KEY not found
+```
+**Solution:**
+```bash
+echo "GEMINI_API_KEY=your_key_here" > .env
 ```
 
-## Requirements
-
-- Python 3.7+
-- Gemini API key
-- Internet connection
-- Fonts (uses DejaVu Sans by default, falls back to default if not available)
-
-## Troubleshooting
-
-### "GEMINI_API_KEY not found"
-Make sure you've created a `.env` file and added your API key.
-
-### Font errors
-The script tries to use DejaVu Sans fonts. If not available, it falls back to default fonts. Install fonts:
-
+### Font Error
+```
+Warning: Font not found, using default
+```
+**Solution:** Install DejaVu fonts
 ```bash
 # Ubuntu/Debian
 sudo apt-get install fonts-dejavu
 
-# macOS (usually pre-installed)
-# Windows: Download DejaVu fonts manually
+# macOS - usually pre-installed
+# Windows - download manually
 ```
 
-### Image download fails
-Some websites block automated requests. The script will use a default background if image download fails.
+### Image Download Gagal
+```
+Warning: No valid images found, using default background
+```
+**Penyebab:**
+- Website blocking automated requests
+- Image tidak ditemukan di HTML
+- Image size terlalu kecil
 
-## API Key
+**Solution:**
+- Script akan auto fallback ke default background
+- Atau adjust `MIN_IMAGE_WIDTH` dan `MIN_IMAGE_HEIGHT` di config.py
 
-Get your Gemini API key from: https://ai.google.dev/
+### Import Error
+```
+ModuleNotFoundError: No module named 'openai'
+```
+**Solution:**
+```bash
+pip install -r requirements.txt
+```
 
-## License
+### Port Already in Use (Web UI)
+```
+Error: Address already in use
+```
+**Solution:**
+```bash
+# Kill process di port 5000
+lsof -ti:5000 | xargs kill -9
 
-MIT License
+# Atau ganti port di app.py
+app.run(port=5001)
+```
 
-## Author
+---
 
-Created for Folkative Indonesia
+## 📊 Requirements
+
+- **Python 3.7+**
+- **Gemini API Key** (gratis dari https://ai.google.dev/)
+- **Internet connection**
+- **Fonts**: DejaVu Sans (optional, fallback tersedia)
+
+### Python Packages
+```
+openai
+requests
+beautifulsoup4
+pillow
+python-dotenv
+flask
+jinja2
+```
+
+Install semua:
+```bash
+pip install -r requirements.txt
+```
+
+---
+
+## 🎯 Use Cases
+
+### 1. News Portal / Media
+- Generate post Instagram otomatis dari artikel
+- Konsisten branding dengan custom badge
+- Multiple styles untuk different sections
+
+### 2. Content Creator / Influencer
+- Repurpose artikel jadi IG post
+- Clickbait style untuk viral content
+- Question style untuk engagement
+
+### 3. Social Media Manager
+- Batch generate posts dari multiple URLs
+- Gallery untuk manage semua hasil
+- Quick customization via Web UI
+
+### 4. Automation / Bot
+- Integrate ke workflow otomatis
+- Python API untuk scripting
+- CLI untuk cron jobs
+
+---
+
+## 🚀 Roadmap
+
+### ✅ Implemented
+- [x] 5 Headline styles dengan custom prompts
+- [x] 2 Layout designs (White Box + News Update)
+- [x] AI source extraction (Gemini identifies media name)
+- [x] Web UI dengan dark mode
+- [x] Gallery dengan sorting & NEW badge
+- [x] Customizable source attribution
+- [x] CLI dengan full options
+- [x] Python API
+
+### 🔮 Future Ideas
+- [ ] Layout 3: Minimalist style
+- [ ] Video/GIF support untuk Instagram Story
+- [ ] Multi-language headline generation
+- [ ] Template system untuk custom layouts
+- [ ] Integration dengan Instagram API (auto post)
+- [ ] Bulk upload dari CSV
+- [ ] A/B testing untuk headlines
+
+---
+
+## 📄 License
+
+MIT License - bebas untuk digunakan, dimodifikasi, dan didistribusikan.
+
+---
+
+## 👨‍💻 Credits
+
+**Developed by:** Claude (Anthropic AI)
+**For:** Folkative Indonesia & Open Source Community
+
+**Powered by:**
+- Gemini AI (Google)
+- Python
+- Flask
+- Tailwind CSS
+
+---
+
+## 📞 Support & Dokumentasi
+
+### Dokumentasi Lengkap
+- **[CONFIG_GUIDE.md](CONFIG_GUIDE.md)** - Panduan konfigurasi lengkap
+- **[WEB_UI_GUIDE.md](WEB_UI_GUIDE.md)** - Guide Web Interface
+- **[HEADLINE_STYLES.md](HEADLINE_STYLES.md)** - 5 Headline styles dengan contoh
+- **[LAYOUT2_DOCUMENTATION.md](LAYOUT2_DOCUMENTATION.md)** - Layout 2 documentation
+- **[AI_SOURCE_EXTRACTION.md](AI_SOURCE_EXTRACTION.md)** - AI source extraction guide
+- **[SOURCE_ATTRIBUTION_UPDATE.md](SOURCE_ATTRIBUTION_UPDATE.md)** - Source customization
+
+### Quick Links
+- **Get API Key:** https://ai.google.dev/
+- **Gemini Docs:** https://ai.google.dev/docs
+- **Issue Tracker:** (Add your repo link here)
+
+---
+
+## 🌟 Getting Started Checklist
+
+- [ ] Install Python 3.7+
+- [ ] Clone/download project
+- [ ] Run `pip install -r requirements.txt`
+- [ ] Get Gemini API key dari https://ai.google.dev/
+- [ ] Create `.env` file dengan API key
+- [ ] Run `python app.py` untuk Web UI
+- [ ] Atau `python headline_generator.py <url>` untuk CLI
+- [ ] Explore settings di config.py
+- [ ] Generate post pertama kamu!
+- [ ] Baca dokumentasi untuk advanced features
+
+---
+
+**Happy Generating! 🎉**

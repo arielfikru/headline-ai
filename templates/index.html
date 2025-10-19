@@ -61,7 +61,7 @@
                     <input
                         type="url"
                         id="article-url"
-                        placeholder="https://www.detik.com/news/..."
+                        placeholder="https://www.tempo.co/..."
                         required
                         class="w-full px-4 py-3 bg-dark-bg border border-dark-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
                     />
@@ -111,6 +111,30 @@
                             <div class="bg-dark-bg border-2 border-dark-border peer-checked:border-blue-500 peer-checked:bg-blue-500/10 rounded-lg p-4 transition hover:border-blue-400">
                                 <div class="font-semibold mb-1">📖 Storytelling</div>
                                 <div class="text-xs text-gray-400">Narrative & emotional</div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Layout Style Selector -->
+                <div>
+                    <label class="block text-sm font-medium mb-2">
+                        Layout Style
+                    </label>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <label class="relative cursor-pointer">
+                            <input type="radio" name="layout" value="layout1" checked class="peer sr-only"/>
+                            <div class="bg-dark-bg border-2 border-dark-border peer-checked:border-green-500 peer-checked:bg-green-500/10 rounded-lg p-4 transition hover:border-green-400">
+                                <div class="font-semibold mb-1">📄 White Box (Classic)</div>
+                                <div class="text-xs text-gray-400">White overlay box dengan source attribution</div>
+                            </div>
+                        </label>
+
+                        <label class="relative cursor-pointer">
+                            <input type="radio" name="layout" value="layout2" class="peer sr-only"/>
+                            <div class="bg-dark-bg border-2 border-dark-border peer-checked:border-green-500 peer-checked:bg-green-500/10 rounded-lg p-4 transition hover:border-green-400">
+                                <div class="font-semibold mb-1">🎨 Modern Gradient</div>
+                                <div class="text-xs text-gray-400">Gradient overlay, logo di atas, text over image</div>
                             </div>
                         </label>
                     </div>
@@ -253,6 +277,7 @@
         const url = document.getElementById('article-url').value.trim();
         const brandText = document.getElementById('brand-text').value.trim();
         const style = document.querySelector('input[name="style"]:checked').value;
+        const layout = document.querySelector('input[name="layout"]:checked').value;
 
         if (!url) {
             showToast('Please enter an article URL', 'error');
@@ -290,7 +315,7 @@
             const response = await fetch('/api/generate', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({url, brand_text: brandText, style})
+                body: JSON.stringify({url, brand_text: brandText, style, layout})
             });
 
             const data = await response.json();

@@ -9,7 +9,7 @@ Modify these values to customize the design
 
 # Image dimensions
 IMAGE_WIDTH = 1080
-IMAGE_HEIGHT = 1350
+IMAGE_HEIGHT = 1080
 
 # ============================================================================
 # FONT SETTINGS
@@ -55,8 +55,38 @@ MAX_TITLE_LENGTH = 150  # Maximum characters for title
 
 BRAND_TEXT = ""
 SHOW_BRAND = False  # Set to False to hide branding
-SHOW_SOURCE = False  # Set to False to hide source attribution
+SHOW_SOURCE = True  # Set to False to hide source attribution
 SOURCE_TEXT = "Sumber"  # Text for source label (default: "Sumber")
+
+# ============================================================================
+# LAYOUT SETTINGS
+# ============================================================================
+
+# Available layouts
+AVAILABLE_LAYOUTS = {
+    "layout1": {
+        "name": "White Box (Classic)",
+        "description": "White box overlay dengan title dan source di bawah",
+        "type": "white_box"
+    },
+    "layout2": {
+        "name": "Modern Gradient",
+        "description": "Gradient overlay di bawah, source logo di atas, text over image",
+        "type": "modern_gradient"
+    }
+}
+
+DEFAULT_LAYOUT = "layout1"
+
+# Layout 2 (Modern Gradient) specific settings
+LAYOUT2_BADGE_TEXT = "NEWS UPDATE"  # Not used anymore (badge removed)
+LAYOUT2_BADGE_BG_COLOR = (220, 20, 60, 255)  # Not used anymore
+LAYOUT2_BADGE_TEXT_COLOR = (255, 255, 255, 255)  # Not used anymore
+LAYOUT2_BADGE_PADDING = 20  # Not used anymore
+LAYOUT2_BADGE_MARGIN = 30  # Used for source logo margin
+LAYOUT2_GRADIENT_HEIGHT = 550  # Height of bottom gradient overlay (increased for thicker gradient)
+LAYOUT2_GRADIENT_COLOR = (0, 0, 0, 220)  # Dark with stronger transparency
+LAYOUT2_TEXT_COLOR = (255, 255, 255, 255)  # White text for overlay
 
 # ============================================================================
 # GEMINI AI SETTINGS

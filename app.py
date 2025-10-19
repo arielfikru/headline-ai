@@ -231,6 +231,7 @@ def generate_post():
     url = data.get('url', '').strip()
     brand_text = data.get('brand_text', '').strip()
     style = data.get('style', 'clickbait')
+    layout = data.get('layout', 'layout1')
 
     if not url:
         return jsonify({'success': False, 'error': 'URL is required'})
@@ -238,6 +239,10 @@ def generate_post():
     # Validate style
     if style not in config.HEADLINE_STYLES:
         return jsonify({'success': False, 'error': f'Invalid style: {style}'})
+
+    # Validate layout
+    if layout not in config.AVAILABLE_LAYOUTS:
+        return jsonify({'success': False, 'error': f'Invalid layout: {layout}'})
 
     # Check if API key is set
     if not os.getenv('GEMINI_API_KEY'):
@@ -248,7 +253,8 @@ def generate_post():
         output_path = generator.generate_post(
             url,
             brand_text=brand_text or None,
-            style=style
+            style=style,
+            layout=layout
         )
 
         # Get filename
