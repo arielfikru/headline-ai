@@ -50,11 +50,13 @@ LINE_HEIGHT = 60  # Space between lines
 MAX_TITLE_LENGTH = 150  # Maximum characters for title
 
 # ============================================================================
-# BRANDING
+# BRANDING & SOURCE
 # ============================================================================
 
 BRAND_TEXT = ""
 SHOW_BRAND = False  # Set to False to hide branding
+SHOW_SOURCE = False  # Set to False to hide source attribution
+SOURCE_TEXT = "Sumber"  # Text for source label (default: "Sumber")
 
 # ============================================================================
 # GEMINI AI SETTINGS
@@ -84,21 +86,22 @@ HTML: {html_content}
 
 Tugas kamu:
 1. Baca dan pahami inti berita dari HTML
-2. Buat headline CLICKBAIT yang menarik perhatian, seperti:
+2. Identifikasi SUMBER berita (nama media/publisher, seperti "Kompas", "Detik", "CNN Indonesia", dll)
+3. Buat headline CLICKBAIT yang menarik perhatian, seperti:
    - "Gak Nyangka! [fakta mengejutkan dari berita]"
    - "Ternyata Ini Alasan [topik berita]"
    - "Viral! [topik berita] Bikin Netizen [reaksi]"
    - "[Angka/Fakta] yang Bikin [reaksi emosional]"
    - "Berani Coba? [Topik berita]"
 
-3. Headline harus:
+4. Headline harus:
    - Maksimal {max_title_length} karakter
    - Bahasa Indonesia yang gaul dan menarik
    - Mengandung unsur penasaran (curiosity gap)
    - TIDAK boleh hanya copy judul asli
    - Harus membuat orang ingin tahu lebih lanjut
 
-Response JSON: {{"title": "headline clickbait", "summary": "ringkasan"}}
+Response JSON: {{"title": "headline clickbait", "summary": "ringkasan", "source": "nama media"}}
 PENTING: Response HARUS valid JSON tanpa markdown!"""
     },
 
@@ -113,21 +116,22 @@ HTML: {html_content}
 
 Tugas kamu:
 1. Baca dan pahami inti berita dari HTML
-2. Buat headline FORMAL dan informatif seperti media mainstream:
+2. Identifikasi SUMBER berita (nama media/publisher, seperti "Kompas", "Detik", "CNN Indonesia", dll)
+3. Buat headline FORMAL dan informatif seperti media mainstream:
    - "[Subjek] [Predikat] [Objek/Keterangan]"
    - "Pemerintah Umumkan [Kebijakan Baru]"
    - "Pakar: [Statement atau Prediksi]"
    - "[Institusi] Luncurkan [Program/Produk]"
    - "Studi Terbaru: [Temuan Penelitian]"
 
-3. Headline harus:
+4. Headline harus:
    - Maksimal {max_title_length} karakter
    - Bahasa Indonesia baku dan formal
    - Fokus pada fakta, bukan sensasi
    - Objektif dan informatif
    - Kredibel seperti headline Kompas/Tempo
 
-Response JSON: {{"title": "headline formal", "summary": "ringkasan"}}
+Response JSON: {{"title": "headline formal", "summary": "ringkasan", "source": "nama media"}}
 PENTING: Response HARUS valid JSON tanpa markdown!"""
     },
 
@@ -142,21 +146,22 @@ HTML: {html_content}
 
 Tugas kamu:
 1. Baca dan pahami inti berita dari HTML
-2. Buat headline CASUAL dengan gaya ngobrol santai:
+2. Identifikasi SUMBER berita (nama media/publisher, seperti "Kompas", "Detik", "CNN Indonesia", dll)
+3. Buat headline CASUAL dengan gaya ngobrol santai:
    - "[Topik] yang Lagi Rame Dibahas"
    - "Eh, Ternyata [Fakta Menarik] Lho!"
    - "Akhirnya! [Event/Kejadian]"
    - "Seru Nih: [Topik Menarik]"
    - "[Subjek] Bikin [Reaksi Positif]"
 
-3. Headline harus:
+4. Headline harus:
    - Maksimal {max_title_length} karakter
    - Bahasa Indonesia casual, seperti ngobrol sama teman
    - Bersahabat dan approachable
    - Tetap informatif tapi tidak kaku
    - Hindari clickbait berlebihan
 
-Response JSON: {{"title": "headline casual", "summary": "ringkasan"}}
+Response JSON: {{"title": "headline casual", "summary": "ringkasan", "source": "nama media"}}
 PENTING: Response HARUS valid JSON tanpa markdown!"""
     },
 
@@ -171,21 +176,22 @@ HTML: {html_content}
 
 Tugas kamu:
 1. Baca dan pahami inti berita dari HTML
-2. Buat headline berbentuk PERTANYAAN yang membuat penasaran:
+2. Identifikasi SUMBER berita (nama media/publisher, seperti "Kompas", "Detik", "CNN Indonesia", dll)
+3. Buat headline berbentuk PERTANYAAN yang membuat penasaran:
    - "Kenapa [Topik] Jadi [Kondisi]?"
    - "Apa yang Terjadi Kalau [Skenario]?"
    - "Siapa Sangka [Subjek] Bisa [Aksi]?"
    - "Kapan [Event] Akan [Terjadi]?"
    - "Bagaimana [Proses] Bisa [Hasil]?"
 
-3. Headline harus:
+4. Headline harus:
    - Maksimal {max_title_length} karakter
    - Berbentuk pertanyaan (5W1H: Apa, Siapa, Kenapa, Kapan, Dimana, Bagaimana)
    - Membuat pembaca penasaran ingin tahu jawabannya
    - Natural dan tidak dipaksakan
    - Bahasa Indonesia yang jelas
 
-Response JSON: {{"title": "headline pertanyaan", "summary": "ringkasan"}}
+Response JSON: {{"title": "headline pertanyaan", "summary": "ringkasan", "source": "nama media"}}
 PENTING: Response HARUS valid JSON tanpa markdown!"""
     },
 
@@ -200,21 +206,22 @@ HTML: {html_content}
 
 Tugas kamu:
 1. Baca dan pahami inti berita dari HTML
-2. Buat headline STORYTELLING dengan pendekatan cerita:
+2. Identifikasi SUMBER berita (nama media/publisher, seperti "Kompas", "Detik", "CNN Indonesia", dll)
+3. Buat headline STORYTELLING dengan pendekatan cerita:
    - "Kisah [Subjek] yang [Perjalanan Emosional]"
    - "Dari [Kondisi Awal] Hingga [Kondisi Akhir]"
    - "Perjuangan [Subjek] Melawan [Tantangan]"
    - "Di Balik [Kejadian], Ada [Cerita Tersembunyi]"
    - "[Subjek] Mengubah [Kondisi] Menjadi [Hasil]"
 
-3. Headline harus:
+4. Headline harus:
    - Maksimal {max_title_length} karakter
    - Menggunakan pendekatan naratif/bercerita
    - Memiliki arc emosional (perjalanan/transformasi)
    - Humanis dan relatable
    - Bahasa Indonesia yang mengalir seperti cerita
 
-Response JSON: {{"title": "headline storytelling", "summary": "ringkasan"}}
+Response JSON: {{"title": "headline storytelling", "summary": "ringkasan", "source": "nama media"}}
 PENTING: Response HARUS valid JSON tanpa markdown!"""
     }
 }

@@ -124,6 +124,51 @@
             </div>
         </div>
 
+        <!-- Branding & Source -->
+        <div class="bg-dark-card border border-dark-border rounded-lg p-6">
+            <h2 class="text-xl font-semibold mb-4 flex items-center">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>
+                </svg>
+                Branding & Source
+            </h2>
+
+            <div class="space-y-4">
+                <!-- Source Attribution Toggle -->
+                <div>
+                    <label class="flex items-center space-x-3 cursor-pointer">
+                        <input type="checkbox" name="SHOW_SOURCE" value="true" {% if config.SHOW_SOURCE %}checked{% endif %}
+                               class="w-5 h-5 bg-dark-bg border-2 border-dark-border rounded focus:ring-2 focus:ring-blue-500 text-blue-600 cursor-pointer"/>
+                        <div>
+                            <div class="font-medium">Show Source Attribution</div>
+                            <div class="text-sm text-gray-400">Display article source at bottom of post</div>
+                        </div>
+                    </label>
+                </div>
+
+                <!-- Source Text Label -->
+                <div>
+                    <label class="block text-sm font-medium mb-2">Source Label Text</label>
+                    <input type="text" name="SOURCE_TEXT" value="{{ config.SOURCE_TEXT }}"
+                           placeholder="e.g., Sumber, Source, From"
+                           class="w-full px-4 py-2 bg-dark-bg border border-dark-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"/>
+                    <p class="text-xs text-gray-400 mt-1">Label shown before domain name (e.g., "Sumber: example.com")</p>
+                </div>
+
+                <!-- Positioning Info -->
+                <div class="bg-dark-bg rounded-lg p-4 border border-dark-border/50">
+                    <div class="text-sm text-gray-300">
+                        <div class="font-semibold mb-2">Positioning Logic:</div>
+                        <ul class="space-y-1 text-xs text-gray-400">
+                            <li>• <span class="text-blue-400">Source ON + Brand ON:</span> Source at bottom right, Brand at bottom left</li>
+                            <li>• <span class="text-blue-400">Source OFF + Brand ON:</span> Brand at bottom right</li>
+                            <li>• <span class="text-blue-400">Source ON + Brand OFF:</span> Source at bottom right</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- AI Settings -->
         <div class="bg-dark-card border border-dark-border rounded-lg p-6">
             <h2 class="text-xl font-semibold mb-4 flex items-center">
@@ -420,6 +465,9 @@
         });
 
         data.GEMINI_TEMPERATURE = parseFloat(data.GEMINI_TEMPERATURE);
+
+        // Convert boolean fields (checkboxes)
+        data.SHOW_SOURCE = data.SHOW_SOURCE === 'true';
 
         // Collect headline prompts
         const headlinePrompts = {};

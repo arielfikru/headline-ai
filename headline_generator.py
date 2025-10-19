@@ -164,13 +164,28 @@ class HeadlineGenerator:
             result['title'] = result.get('title', result.get('clickbait_title', 'Berita Terkini'))
             result['image_url'] = image_candidates[0] if image_candidates else None
 
+            # Extract source from AI response, fallback to domain if not provided
+            if 'source' not in result or not result['source']:
+                # Fallback to domain parsing
+                from urllib.parse import urlparse
+                parsed_url = urlparse(url)
+                result['source'] = parsed_url.netloc
+            else:
+                result['source'] = result['source']
+
         except json.JSONDecodeError as e:
             print(f"Failed to parse JSON: {e}")
             print(f"Response was: {result_text}")
+            # Fallback: parse domain from URL
+            from urllib.parse import urlparse
+            parsed_url = urlparse(url)
+            fallback_source = parsed_url.netloc
+
             result = {
                 "title": "Berita Terkini yang Mengejutkan!",
                 "summary": "Baca berita selengkapnya",
                 "image_url": image_candidates[0] if image_candidates else None,
+                "source": fallback_source,
             }
 
         return result
@@ -239,8 +254,8 @@ class HeadlineGenerator:
 
         return lines
 
-    def create_post_design(self, background_img, title, source_domain, output_path, brand_text=None):
-        """Create the final post design"""
+    def create_post_design(self, background_img, title, source_name, output_path, brand_text=None):
+        """Create the final post design with AI-extracted source name"""
         print("Creating post design...")
 
         # Resize and crop background image
@@ -322,38 +337,59 @@ class HeadlineGenerator:
             )
             y_position += config.LINE_HEIGHT
 
-        # Draw branding at bottom left (if provided)
-        if brand_text:
-            brand_x = box_left + config.BOX_PADDING
-            brand_y = box_bottom - config.BOX_PADDING - 30
+        # Conditional positioning based on SHOW_SOURCE and brand_text
+        # Logic:
+        # - Source ON + Brand ON  = Source kanan bawah, Brand kiri bawah
+        # - Source OFF + Brand ON = Brand kanan bawah
+        # - Source ON + Brand OFF = Source kanan bawah
+
+        bottom_y = box_bottom - config.BOX_PADDING - 30
+
+        if config.SHOW_SOURCE:
+            # Show source attribution (AI-extracted source name, not domain)
+            source_text = f"{config.SOURCE_TEXT}: {source_name}"
+            source_bbox = draw.textbbox((0, 0), source_text, font=source_font)
+            source_width = source_bbox[2] - source_bbox[0]
+            source_x = box_right - config.BOX_PADDING - source_width
 
             draw.text(
-                (brand_x, brand_y),
-                brand_text,
-                fill=config.BRAND_COLOR,
+                (source_x, bottom_y),
+                source_text,
+                fill=config.SOURCE_COLOR,
                 font=source_font
             )
 
-        # Draw source at bottom right
-        source_text = f"Source: {source_domain}"
-        source_bbox = draw.textbbox((0, 0), source_text, font=source_font)
-        source_width = source_bbox[2] - source_bbox[0]
-        source_x = box_right - config.BOX_PADDING - source_width
-        source_y = box_bottom - config.BOX_PADDING - 30
+            # If brand text provided, show at bottom left
+            if brand_text:
+                brand_x = box_left + config.BOX_PADDING
+                draw.text(
+                    (brand_x, bottom_y),
+                    brand_text,
+                    fill=config.BRAND_COLOR,
+                    font=source_font
+                )
 
-        draw.text(
-            (source_x, source_y),
-            source_text,
-            fill=config.SOURCE_COLOR,
-            font=source_font
-        )
+        else:
+            # Source is OFF
+            if brand_text:
+                # Brand text takes the right position (where source would be)
+                brand_bbox = draw.textbbox((0, 0), brand_text, font=source_font)
+                brand_width = brand_bbox[2] - brand_bbox[0]
+                brand_x = box_right - config.BOX_PADDING - brand_width
+
+                draw.text(
+                    (brand_x, bottom_y),
+                    brand_text,
+                    fill=config.BRAND_COLOR,
+                    font=source_font
+                )
 
         # Convert back to RGB and save
         background_img = background_img.convert('RGB')
         background_img.save(output_path, config.OUTPUT_FORMAT, quality=config.OUTPUT_QUALITY)
         print(f"Post saved to: {output_path}")
 
-    def generate_post(self, url, output_filename=None, brand_text=None, style="clickbait"):
+    def generate_post(self, url, output_filename=None, brand_text=None, style="clickbait", show_source=None):
         """Main method to generate post from URL
 
         Args:
@@ -361,14 +397,17 @@ class HeadlineGenerator:
             output_filename: Custom output filename (optional)
             brand_text: Brand text for bottom left (optional)
             style: Headline style - clickbait, formal, casual, question, storytelling
+            show_source: Override SHOW_SOURCE config (True/False/None for default)
         """
         try:
             # Get brand text from parameter, environment variable, or None
             if brand_text is None:
                 brand_text = os.getenv("BRAND_TEXT", None)
-            # Extract domain for source
-            parsed_url = urlparse(url)
-            source_domain = parsed_url.netloc
+
+            # Override show_source if specified
+            original_show_source = config.SHOW_SOURCE
+            if show_source is not None:
+                config.SHOW_SOURCE = show_source
 
             # Fetch article
             html_content = self.fetch_article_content(url)
@@ -379,6 +418,10 @@ class HeadlineGenerator:
             print(f"\nExtracted data:")
             print(f"Title: {article_data['title']}")
             print(f"Summary: {article_data.get('summary', 'N/A')}")
+            print(f"Source: {article_data.get('source', 'N/A')}")
+
+            # Get source from AI extraction (Gemini determines the source name)
+            source_name = article_data.get('source', 'Unknown Source')
 
             # Try to download image from candidates
             background_img = None
@@ -407,18 +450,25 @@ class HeadlineGenerator:
 
             output_path = os.path.join(config.OUTPUT_DIR, output_filename)
 
-            # Create the design
+            # Create the design (using AI-extracted source name)
             self.create_post_design(
                 background_img,
                 article_data['title'],
-                source_domain,
+                source_name,
                 output_path,
                 brand_text=brand_text
             )
 
+            # Restore original config
+            if show_source is not None:
+                config.SHOW_SOURCE = original_show_source
+
             return output_path
 
         except Exception as e:
+            # Restore original config even on error
+            if show_source is not None:
+                config.SHOW_SOURCE = original_show_source
             print(f"Error generating post: {e}")
             raise
 
@@ -436,6 +486,8 @@ Examples:
   python headline_generator.py https://example.com/article -o my_post.png
   python headline_generator.py https://example.com/article --brand "MyBrand"
   python headline_generator.py https://example.com/article --brand "My Brand" -o output.png
+  python headline_generator.py https://example.com/article --hide-source
+  python headline_generator.py https://example.com/article --style formal --hide-source
         """
     )
 
@@ -448,19 +500,36 @@ Examples:
                         choices=['clickbait', 'formal', 'casual', 'question', 'storytelling'],
                         default='clickbait',
                         help='Headline style (default: clickbait)')
+    parser.add_argument('--hide-source', dest='hide_source',
+                        action='store_true',
+                        help='Hide source attribution (overrides config)')
+    parser.add_argument('--show-source', dest='show_source',
+                        action='store_true',
+                        help='Show source attribution (overrides config)')
 
     args = parser.parse_args()
 
+    # Determine show_source value
+    show_source_override = None
+    if args.hide_source:
+        show_source_override = False
+    elif args.show_source:
+        show_source_override = True
+
     # Show available styles if requested
     print(f"\nUsing style: {config.HEADLINE_STYLES[args.style]['name']}")
-    print(f"Description: {config.HEADLINE_STYLES[args.style]['description']}\n")
+    print(f"Description: {config.HEADLINE_STYLES[args.style]['description']}")
+    if show_source_override is not None:
+        print(f"Source attribution: {'ON' if show_source_override else 'OFF'}")
+    print()
 
     generator = HeadlineGenerator()
     output_path = generator.generate_post(
         args.url,
         output_filename=args.output_filename,
         brand_text=args.brand_text,
-        style=args.style
+        style=args.style,
+        show_source=show_source_override
     )
 
     print(f"\n✓ Successfully generated post: {output_path}")

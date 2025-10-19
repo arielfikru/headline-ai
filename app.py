@@ -62,6 +62,8 @@ def settings_page():
         'AI_PROMPT_TEMPLATE': config.AI_PROMPT_TEMPLATE,
         'HEADLINE_STYLES': config.HEADLINE_STYLES,
         'DEFAULT_HEADLINE_STYLE': config.DEFAULT_HEADLINE_STYLE,
+        'SHOW_SOURCE': config.SHOW_SOURCE,
+        'SOURCE_TEXT': config.SOURCE_TEXT,
     }
 
     settings = load_settings()
@@ -75,15 +77,35 @@ def gallery():
     posts = []
 
     if os.path.exists(output_dir):
-        for filename in sorted(os.listdir(output_dir), reverse=True):
+        # Get all PNG files with their modification times
+        files_with_mtime = []
+        for filename in os.listdir(output_dir):
             if filename.endswith('.png'):
                 filepath = os.path.join(output_dir, filename)
                 stat = os.stat(filepath)
-                posts.append({
+                files_with_mtime.append({
                     'filename': filename,
-                    'created': datetime.fromtimestamp(stat.st_mtime).strftime('%Y-%m-%d %H:%M'),
-                    'size': f"{stat.st_size / 1024:.1f} KB"
+                    'filepath': filepath,
+                    'mtime': stat.st_mtime,
+                    'size': stat.st_size
                 })
+
+        # Sort by modification time (newest first)
+        files_with_mtime.sort(key=lambda x: x['mtime'], reverse=True)
+
+        # Build posts list
+        import time
+        now = time.time()
+        for file_data in files_with_mtime:
+            # Check if created within last 24 hours
+            is_new = (now - file_data['mtime']) < 86400  # 24 hours in seconds
+
+            posts.append({
+                'filename': file_data['filename'],
+                'created': datetime.fromtimestamp(file_data['mtime']).strftime('%Y-%m-%d %H:%M'),
+                'size': f"{file_data['size'] / 1024:.1f} KB",
+                'is_new': is_new
+            })
 
     return render_template('gallery.html', posts=posts)
 
@@ -159,6 +181,16 @@ def save_advanced_settings():
         if value is not None:
             pattern = f'{key} = \\d+'
             config_content = re.sub(pattern, f'{key} = {value}', config_content)
+
+    # Update boolean values
+    if 'SHOW_SOURCE' in data:
+        show_source_value = 'True' if data['SHOW_SOURCE'] else 'False'
+        config_content = re.sub(r'SHOW_SOURCE = (True|False)', f'SHOW_SOURCE = {show_source_value}', config_content)
+
+    # Update string values
+    if 'SOURCE_TEXT' in data:
+        source_text = data['SOURCE_TEXT'].replace('"', '\\"')  # Escape quotes
+        config_content = re.sub(r'SOURCE_TEXT = "[^"]*"', f'SOURCE_TEXT = "{source_text}"', config_content)
 
     # Update headline style prompts if provided
     headline_prompts = data.get('headline_prompts', {})

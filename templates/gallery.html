@@ -7,14 +7,21 @@
     <!-- Header -->
     <div class="mb-8">
         <h1 class="text-4xl font-bold mb-2">Gallery</h1>
-        <p class="text-gray-400">All your generated posts</p>
+        <p class="text-gray-400">All your generated posts (sorted by newest first)</p>
     </div>
 
     {% if posts %}
     <!-- Gallery Grid -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {% for post in posts %}
-        <div class="bg-dark-card border border-dark-border rounded-lg overflow-hidden hover:border-blue-500 transition group">
+        <div class="bg-dark-card border border-dark-border rounded-lg overflow-hidden hover:border-blue-500 transition group relative">
+            <!-- NEW Badge -->
+            {% if post.is_new %}
+            <div class="absolute top-2 right-2 z-10 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg">
+                NEW
+            </div>
+            {% endif %}
+
             <!-- Image -->
             <div class="aspect-[4/5] bg-dark-bg overflow-hidden">
                 <img
