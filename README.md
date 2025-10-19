@@ -65,23 +65,41 @@ python headline_generator.py <article_url> [options]
 **Options:**
 - `-o, --output FILENAME` - Custom output filename
 - `-b, --brand TEXT` - Brand text to show in bottom left corner
+- `-s, --style STYLE` - Headline style: `clickbait`, `formal`, `casual`, `question`, `storytelling`
 - `-h, --help` - Show help message
 
 **Examples:**
 
 ```bash
-# Basic usage
+# Basic usage (default: clickbait)
 python headline_generator.py https://www.example.com/news/article
 
-# With custom output filename
-python headline_generator.py https://www.example.com/news/article -o my_post.png
+# With formal style
+python headline_generator.py https://www.example.com/news/article --style formal
 
-# With custom branding
-python headline_generator.py https://www.example.com/news/article --brand "FOLKATIVE"
+# With question style
+python headline_generator.py https://www.example.com/news/article -s question
 
-# With both custom output and branding
-python headline_generator.py https://www.example.com/news/article --brand "My Brand" -o output.png
+# All options combined
+python headline_generator.py https://www.example.com/news/article \
+    --style storytelling \
+    --brand "MyBrand" \
+    -o output.png
 ```
+
+### 🎨 **5 Headline Styles Available:**
+
+| Style | Description | Best For |
+|-------|-------------|----------|
+| 🔥 **Clickbait** | Sensational, curiosity-driven | Viral content, social media |
+| 📰 **Formal** | Professional, journalistic | News portals, corporate |
+| 💬 **Casual** | Friendly, conversational | Blogs, lifestyle |
+| ❓ **Question** | Engaging questions | Educational, discussion |
+| 📖 **Storytelling** | Narrative, emotional | Human interest, features |
+
+**Lihat [HEADLINE_STYLES.md](HEADLINE_STYLES.md) untuk guide lengkap dengan examples!**
+
+---
 
 ### Python API
 
@@ -91,21 +109,22 @@ from headline_generator import HeadlineGenerator
 # Initialize generator
 generator = HeadlineGenerator()
 
-# Generate post (basic)
+# Generate post (basic - default clickbait)
 output_path = generator.generate_post(
     url="https://www.example.com/news/article"
 )
 
-# Generate post with custom filename
+# Generate with formal style
 output_path = generator.generate_post(
     url="https://www.example.com/news/article",
-    output_filename="my_post.png"
+    style="formal"
 )
 
-# Generate post with custom branding
+# Generate with question style and branding
 output_path = generator.generate_post(
     url="https://www.example.com/news/article",
-    brand_text="FOLKATIVE"
+    style="question",
+    brand_text="MyBrand"
 )
 
 # Generate post with all options
@@ -124,7 +143,7 @@ You can set a default brand text in your `.env` file:
 
 ```bash
 GEMINI_API_KEY=your_api_key_here
-BRAND_TEXT=FOLKATIVE
+BRAND_TEXT=MyBrand
 ```
 
 When `BRAND_TEXT` is set in `.env`, it will be used automatically unless overridden by the `--brand` parameter.

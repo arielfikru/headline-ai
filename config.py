@@ -65,15 +65,22 @@ GEMINI_TEMPERATURE = 0.9  # Higher for more creative clickbait
 GEMINI_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/openai/"
 
 # ============================================================================
-# AI PROMPT TEMPLATE
+# AI PROMPT TEMPLATES - 5 PRESET STYLES
 # ============================================================================
 
-AI_PROMPT_TEMPLATE = """Analisis HTML berita berikut dan buat headline CLICKBAIT yang menarik:
+# Default style to use
+DEFAULT_HEADLINE_STYLE = "clickbait"
+
+# Available headline styles
+HEADLINE_STYLES = {
+    "clickbait": {
+        "name": "Clickbait",
+        "description": "Sensational, curiosity-driven headlines",
+        "temperature": 0.9,
+        "prompt": """Analisis HTML berita berikut dan buat headline CLICKBAIT yang menarik:
 
 URL: {url}
-
-HTML:
-{html_content}
+HTML: {html_content}
 
 Tugas kamu:
 1. Baca dan pahami inti berita dari HTML
@@ -91,15 +98,129 @@ Tugas kamu:
    - TIDAK boleh hanya copy judul asli
    - Harus membuat orang ingin tahu lebih lanjut
 
-4. Buat juga summary singkat 1 kalimat untuk context
+Response JSON: {{"title": "headline clickbait", "summary": "ringkasan"}}
+PENTING: Response HARUS valid JSON tanpa markdown!"""
+    },
 
-Response dalam format JSON:
-{{
-    "clickbait_title": "headline clickbait yang menarik",
-    "summary": "ringkasan 1 kalimat"
-}}
+    "formal": {
+        "name": "Formal",
+        "description": "Professional, journalistic style",
+        "temperature": 0.3,
+        "prompt": """Analisis HTML berita berikut dan buat headline FORMAL yang profesional:
 
-PENTING: Response HARUS valid JSON tanpa markdown atau text lain!"""
+URL: {url}
+HTML: {html_content}
+
+Tugas kamu:
+1. Baca dan pahami inti berita dari HTML
+2. Buat headline FORMAL dan informatif seperti media mainstream:
+   - "[Subjek] [Predikat] [Objek/Keterangan]"
+   - "Pemerintah Umumkan [Kebijakan Baru]"
+   - "Pakar: [Statement atau Prediksi]"
+   - "[Institusi] Luncurkan [Program/Produk]"
+   - "Studi Terbaru: [Temuan Penelitian]"
+
+3. Headline harus:
+   - Maksimal {max_title_length} karakter
+   - Bahasa Indonesia baku dan formal
+   - Fokus pada fakta, bukan sensasi
+   - Objektif dan informatif
+   - Kredibel seperti headline Kompas/Tempo
+
+Response JSON: {{"title": "headline formal", "summary": "ringkasan"}}
+PENTING: Response HARUS valid JSON tanpa markdown!"""
+    },
+
+    "casual": {
+        "name": "Casual",
+        "description": "Friendly, conversational tone",
+        "temperature": 0.7,
+        "prompt": """Analisis HTML berita berikut dan buat headline CASUAL yang santai:
+
+URL: {url}
+HTML: {html_content}
+
+Tugas kamu:
+1. Baca dan pahami inti berita dari HTML
+2. Buat headline CASUAL dengan gaya ngobrol santai:
+   - "[Topik] yang Lagi Rame Dibahas"
+   - "Eh, Ternyata [Fakta Menarik] Lho!"
+   - "Akhirnya! [Event/Kejadian]"
+   - "Seru Nih: [Topik Menarik]"
+   - "[Subjek] Bikin [Reaksi Positif]"
+
+3. Headline harus:
+   - Maksimal {max_title_length} karakter
+   - Bahasa Indonesia casual, seperti ngobrol sama teman
+   - Bersahabat dan approachable
+   - Tetap informatif tapi tidak kaku
+   - Hindari clickbait berlebihan
+
+Response JSON: {{"title": "headline casual", "summary": "ringkasan"}}
+PENTING: Response HARUS valid JSON tanpa markdown!"""
+    },
+
+    "question": {
+        "name": "Question",
+        "description": "Engaging question-based headlines",
+        "temperature": 0.8,
+        "prompt": """Analisis HTML berita berikut dan buat headline berbentuk PERTANYAAN yang engaging:
+
+URL: {url}
+HTML: {html_content}
+
+Tugas kamu:
+1. Baca dan pahami inti berita dari HTML
+2. Buat headline berbentuk PERTANYAAN yang membuat penasaran:
+   - "Kenapa [Topik] Jadi [Kondisi]?"
+   - "Apa yang Terjadi Kalau [Skenario]?"
+   - "Siapa Sangka [Subjek] Bisa [Aksi]?"
+   - "Kapan [Event] Akan [Terjadi]?"
+   - "Bagaimana [Proses] Bisa [Hasil]?"
+
+3. Headline harus:
+   - Maksimal {max_title_length} karakter
+   - Berbentuk pertanyaan (5W1H: Apa, Siapa, Kenapa, Kapan, Dimana, Bagaimana)
+   - Membuat pembaca penasaran ingin tahu jawabannya
+   - Natural dan tidak dipaksakan
+   - Bahasa Indonesia yang jelas
+
+Response JSON: {{"title": "headline pertanyaan", "summary": "ringkasan"}}
+PENTING: Response HARUS valid JSON tanpa markdown!"""
+    },
+
+    "storytelling": {
+        "name": "Storytelling",
+        "description": "Narrative-driven, emotional headlines",
+        "temperature": 0.8,
+        "prompt": """Analisis HTML berita berikut dan buat headline STORYTELLING yang naratif:
+
+URL: {url}
+HTML: {html_content}
+
+Tugas kamu:
+1. Baca dan pahami inti berita dari HTML
+2. Buat headline STORYTELLING dengan pendekatan cerita:
+   - "Kisah [Subjek] yang [Perjalanan Emosional]"
+   - "Dari [Kondisi Awal] Hingga [Kondisi Akhir]"
+   - "Perjuangan [Subjek] Melawan [Tantangan]"
+   - "Di Balik [Kejadian], Ada [Cerita Tersembunyi]"
+   - "[Subjek] Mengubah [Kondisi] Menjadi [Hasil]"
+
+3. Headline harus:
+   - Maksimal {max_title_length} karakter
+   - Menggunakan pendekatan naratif/bercerita
+   - Memiliki arc emosional (perjalanan/transformasi)
+   - Humanis dan relatable
+   - Bahasa Indonesia yang mengalir seperti cerita
+
+Response JSON: {{"title": "headline storytelling", "summary": "ringkasan"}}
+PENTING: Response HARUS valid JSON tanpa markdown!"""
+    }
+}
+
+# Backward compatibility: Keep AI_PROMPT_TEMPLATE as default clickbait style
+AI_PROMPT_TEMPLATE = HEADLINE_STYLES["clickbait"]["prompt"]
 
 # Maximum HTML content length to send to AI (characters)
 MAX_HTML_LENGTH = 30000

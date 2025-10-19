@@ -68,6 +68,54 @@
                     <p class="text-sm text-gray-400 mt-1">Paste the full URL of the news article</p>
                 </div>
 
+                <!-- Headline Style Selector -->
+                <div>
+                    <label for="headline-style" class="block text-sm font-medium mb-2">
+                        Headline Style
+                    </label>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                        <label class="relative cursor-pointer">
+                            <input type="radio" name="style" value="clickbait" checked class="peer sr-only"/>
+                            <div class="bg-dark-bg border-2 border-dark-border peer-checked:border-blue-500 peer-checked:bg-blue-500/10 rounded-lg p-4 transition hover:border-blue-400">
+                                <div class="font-semibold mb-1">🔥 Clickbait</div>
+                                <div class="text-xs text-gray-400">Sensational & engaging</div>
+                            </div>
+                        </label>
+
+                        <label class="relative cursor-pointer">
+                            <input type="radio" name="style" value="formal" class="peer sr-only"/>
+                            <div class="bg-dark-bg border-2 border-dark-border peer-checked:border-blue-500 peer-checked:bg-blue-500/10 rounded-lg p-4 transition hover:border-blue-400">
+                                <div class="font-semibold mb-1">📰 Formal</div>
+                                <div class="text-xs text-gray-400">Professional & factual</div>
+                            </div>
+                        </label>
+
+                        <label class="relative cursor-pointer">
+                            <input type="radio" name="style" value="casual" class="peer sr-only"/>
+                            <div class="bg-dark-bg border-2 border-dark-border peer-checked:border-blue-500 peer-checked:bg-blue-500/10 rounded-lg p-4 transition hover:border-blue-400">
+                                <div class="font-semibold mb-1">💬 Casual</div>
+                                <div class="text-xs text-gray-400">Friendly & conversational</div>
+                            </div>
+                        </label>
+
+                        <label class="relative cursor-pointer">
+                            <input type="radio" name="style" value="question" class="peer sr-only"/>
+                            <div class="bg-dark-bg border-2 border-dark-border peer-checked:border-blue-500 peer-checked:bg-blue-500/10 rounded-lg p-4 transition hover:border-blue-400">
+                                <div class="font-semibold mb-1">❓ Question</div>
+                                <div class="text-xs text-gray-400">Engaging questions</div>
+                            </div>
+                        </label>
+
+                        <label class="relative cursor-pointer">
+                            <input type="radio" name="style" value="storytelling" class="peer sr-only"/>
+                            <div class="bg-dark-bg border-2 border-dark-border peer-checked:border-blue-500 peer-checked:bg-blue-500/10 rounded-lg p-4 transition hover:border-blue-400">
+                                <div class="font-semibold mb-1">📖 Storytelling</div>
+                                <div class="text-xs text-gray-400">Narrative & emotional</div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
                 <!-- Brand Text (Optional) -->
                 <div>
                     <label for="brand-text" class="block text-sm font-medium mb-2">
@@ -76,7 +124,7 @@
                     <input
                         type="text"
                         id="brand-text"
-                        placeholder="e.g., FOLKATIVE"
+                        placeholder="e.g., MyBrand"
                         class="w-full px-4 py-3 bg-dark-bg border border-dark-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
                     />
                     <p class="text-sm text-gray-400 mt-1">Text to display in the bottom left corner</p>
@@ -204,6 +252,7 @@
 
         const url = document.getElementById('article-url').value.trim();
         const brandText = document.getElementById('brand-text').value.trim();
+        const style = document.querySelector('input[name="style"]:checked').value;
 
         if (!url) {
             showToast('Please enter an article URL', 'error');
@@ -241,7 +290,7 @@
             const response = await fetch('/api/generate', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({url, brand_text: brandText})
+                body: JSON.stringify({url, brand_text: brandText, style})
             });
 
             const data = await response.json();

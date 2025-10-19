@@ -227,7 +227,7 @@ File `.env` untuk secrets:
 
 ```bash
 GEMINI_API_KEY=your_api_key_here
-BRAND_TEXT=FOLKATIVE  # Optional default branding
+BRAND_TEXT=MyBrand  # Optional default branding
 ```
 
 ---

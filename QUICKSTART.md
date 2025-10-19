@@ -16,7 +16,7 @@ nano .env
 Isi dengan:
 ```
 GEMINI_API_KEY=AIza...your_key_here
-BRAND_TEXT=FOLKATIVE
+BRAND_TEXT=MyBrand
 ```
 
 **Note**: `BRAND_TEXT` opsional. Kosongkan jika tidak ingin ada branding.
@@ -30,7 +30,7 @@ BRAND_TEXT=FOLKATIVE
 python headline_generator.py https://www.detik.com/news/berita/d-12345/artikel-berita
 
 # Dengan branding custom
-python headline_generator.py https://www.detik.com/news/berita/d-12345/artikel-berita --brand "FOLKATIVE"
+python headline_generator.py https://www.detik.com/news/berita/d-12345/artikel-berita --brand "MyBrand"
 
 # Dengan branding dan custom filename
 python headline_generator.py https://www.detik.com/news/berita/d-12345/artikel-berita --brand "My Brand" -o my_post.png

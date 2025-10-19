@@ -60,6 +60,8 @@ def settings_page():
         'MIN_IMAGE_HEIGHT': config.MIN_IMAGE_HEIGHT,
         'MAX_IMAGE_CANDIDATES': config.MAX_IMAGE_CANDIDATES,
         'AI_PROMPT_TEMPLATE': config.AI_PROMPT_TEMPLATE,
+        'HEADLINE_STYLES': config.HEADLINE_STYLES,
+        'DEFAULT_HEADLINE_STYLE': config.DEFAULT_HEADLINE_STYLE,
     }
 
     settings = load_settings()
@@ -132,13 +134,11 @@ def save_advanced_settings():
     """Save advanced settings"""
     data = request.get_json()
 
-    # Update config.py with new values
-    config_content = []
-
+    # Read current config
     with open('config.py', 'r') as f:
-        config_content = f.readlines()
+        config_content = f.read()
 
-    # Update values (simple string replacement)
+    # Update simple numeric values
     replacements = {
         'IMAGE_WIDTH': data.get('IMAGE_WIDTH'),
         'IMAGE_HEIGHT': data.get('IMAGE_HEIGHT'),
@@ -149,24 +149,41 @@ def save_advanced_settings():
         'BOX_RADIUS': data.get('BOX_RADIUS'),
         'LINE_HEIGHT': data.get('LINE_HEIGHT'),
         'MAX_TITLE_LENGTH': data.get('MAX_TITLE_LENGTH'),
-        'GEMINI_TEMPERATURE': data.get('GEMINI_TEMPERATURE'),
         'MIN_IMAGE_WIDTH': data.get('MIN_IMAGE_WIDTH'),
         'MIN_IMAGE_HEIGHT': data.get('MIN_IMAGE_HEIGHT'),
         'MAX_IMAGE_CANDIDATES': data.get('MAX_IMAGE_CANDIDATES'),
     }
 
-    for i, line in enumerate(config_content):
-        for key, value in replacements.items():
-            if value is not None and line.strip().startswith(f'{key} ='):
-                config_content[i] = f'{key} = {value}\n'
+    import re
+    for key, value in replacements.items():
+        if value is not None:
+            pattern = f'{key} = \\d+'
+            config_content = re.sub(pattern, f'{key} = {value}', config_content)
 
-    # Handle prompt template separately
-    if data.get('AI_PROMPT_TEMPLATE'):
-        # This is complex, skip for now or handle carefully
-        pass
+    # Update headline style prompts if provided
+    headline_prompts = data.get('headline_prompts', {})
+    for style_key, prompt_data in headline_prompts.items():
+        if 'prompt' in prompt_data:
+            # Escape special characters in prompt
+            new_prompt = prompt_data['prompt'].replace('"""', '\\"\\"\\"')
 
+            # Find and replace the prompt for this style
+            style_pattern = f'"{style_key}":\\s*{{[^}}]*"prompt":\\s*"""[^"]*"""'
+            # This is complex - for now, we'll store in a JSON file instead
+            pass
+
+    # For prompts, save to a separate JSON file for easier management
+    if headline_prompts:
+        prompts_file = 'custom_prompts.json'
+        try:
+            with open(prompts_file, 'w') as f:
+                json.dump(headline_prompts, f, indent=2)
+        except Exception as e:
+            print(f"Error saving prompts: {e}")
+
+    # Write updated config back
     with open('config.py', 'w') as f:
-        f.writelines(config_content)
+        f.write(config_content)
 
     # Reload config module
     import importlib
@@ -181,9 +198,14 @@ def generate_post():
     data = request.get_json()
     url = data.get('url', '').strip()
     brand_text = data.get('brand_text', '').strip()
+    style = data.get('style', 'clickbait')
 
     if not url:
         return jsonify({'success': False, 'error': 'URL is required'})
+
+    # Validate style
+    if style not in config.HEADLINE_STYLES:
+        return jsonify({'success': False, 'error': f'Invalid style: {style}'})
 
     # Check if API key is set
     if not os.getenv('GEMINI_API_KEY'):
@@ -191,7 +213,11 @@ def generate_post():
 
     try:
         generator = HeadlineGenerator()
-        output_path = generator.generate_post(url, brand_text=brand_text or None)
+        output_path = generator.generate_post(
+            url,
+            brand_text=brand_text or None,
+            style=style
+        )
 
         # Get filename
         filename = os.path.basename(output_path)

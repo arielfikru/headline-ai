@@ -120,7 +120,7 @@ Generate post from URL
 ```json
 {
   "url": "https://example.com/article",
-  "brand_text": "FOLKATIVE"
+  "brand_text": "MyBrand"
 }
 ```
 

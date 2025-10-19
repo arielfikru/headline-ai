@@ -106,9 +106,15 @@ class HeadlineGenerator:
 
         return unique_urls
 
-    def extract_content_with_gemini(self, html_content, url):
-        """Use Gemini to extract article content, title, and image URL"""
-        print("Analyzing article content with Gemini...")
+    def extract_content_with_gemini(self, html_content, url, style="clickbait"):
+        """Use Gemini to extract article content, title, and image URL
+
+        Args:
+            html_content: HTML content of the article
+            url: Article URL
+            style: Headline style (clickbait, formal, casual, question, storytelling)
+        """
+        print(f"Analyzing article content with Gemini (Style: {style})...")
 
         # First extract images using BeautifulSoup
         image_candidates = self.extract_images_from_html(html_content, url)
@@ -118,19 +124,29 @@ class HeadlineGenerator:
         if len(html_content) > config.MAX_HTML_LENGTH:
             html_content = html_content[:config.MAX_HTML_LENGTH] + "..."
 
-        # Use prompt template from config
-        prompt = config.AI_PROMPT_TEMPLATE.format(
+        # Get style config
+        if style not in config.HEADLINE_STYLES:
+            print(f"Warning: Style '{style}' not found, using default")
+            style = config.DEFAULT_HEADLINE_STYLE
+
+        style_config = config.HEADLINE_STYLES[style]
+
+        # Use prompt template from selected style
+        prompt = style_config["prompt"].format(
             url=url,
             html_content=html_content,
             max_title_length=config.MAX_TITLE_LENGTH
         )
+
+        # Use temperature from style config
+        temperature = style_config.get("temperature", config.GEMINI_TEMPERATURE)
 
         response = self.client.chat.completions.create(
             model=self.model,
             messages=[
                 {"role": "user", "content": prompt}
             ],
-            temperature=config.GEMINI_TEMPERATURE,
+            temperature=temperature,
         )
 
         result_text = response.choices[0].message.content
@@ -144,8 +160,8 @@ class HeadlineGenerator:
             else:
                 result = json.loads(result_text)
 
-            # Use clickbait_title as the main title
-            result['title'] = result.get('clickbait_title', result.get('title', 'Berita Terkini'))
+            # Extract title from response (support multiple key names for compatibility)
+            result['title'] = result.get('title', result.get('clickbait_title', 'Berita Terkini'))
             result['image_url'] = image_candidates[0] if image_candidates else None
 
         except json.JSONDecodeError as e:
@@ -337,8 +353,15 @@ class HeadlineGenerator:
         background_img.save(output_path, config.OUTPUT_FORMAT, quality=config.OUTPUT_QUALITY)
         print(f"Post saved to: {output_path}")
 
-    def generate_post(self, url, output_filename=None, brand_text=None):
-        """Main method to generate post from URL"""
+    def generate_post(self, url, output_filename=None, brand_text=None, style="clickbait"):
+        """Main method to generate post from URL
+
+        Args:
+            url: Article URL
+            output_filename: Custom output filename (optional)
+            brand_text: Brand text for bottom left (optional)
+            style: Headline style - clickbait, formal, casual, question, storytelling
+        """
         try:
             # Get brand text from parameter, environment variable, or None
             if brand_text is None:
@@ -350,8 +373,8 @@ class HeadlineGenerator:
             # Fetch article
             html_content = self.fetch_article_content(url)
 
-            # Extract content with Gemini
-            article_data = self.extract_content_with_gemini(html_content, url)
+            # Extract content with Gemini using selected style
+            article_data = self.extract_content_with_gemini(html_content, url, style=style)
 
             print(f"\nExtracted data:")
             print(f"Title: {article_data['title']}")
@@ -411,7 +434,7 @@ def main():
 Examples:
   python headline_generator.py https://example.com/article
   python headline_generator.py https://example.com/article -o my_post.png
-  python headline_generator.py https://example.com/article --brand "FOLKATIVE"
+  python headline_generator.py https://example.com/article --brand "MyBrand"
   python headline_generator.py https://example.com/article --brand "My Brand" -o output.png
         """
     )
@@ -421,14 +444,23 @@ Examples:
                         help='Output filename (optional)')
     parser.add_argument('-b', '--brand', dest='brand_text',
                         help='Brand text to show in bottom left (optional)')
+    parser.add_argument('-s', '--style', dest='style',
+                        choices=['clickbait', 'formal', 'casual', 'question', 'storytelling'],
+                        default='clickbait',
+                        help='Headline style (default: clickbait)')
 
     args = parser.parse_args()
+
+    # Show available styles if requested
+    print(f"\nUsing style: {config.HEADLINE_STYLES[args.style]['name']}")
+    print(f"Description: {config.HEADLINE_STYLES[args.style]['description']}\n")
 
     generator = HeadlineGenerator()
     output_path = generator.generate_post(
         args.url,
         output_filename=args.output_filename,
-        brand_text=args.brand_text
+        brand_text=args.brand_text,
+        style=args.style
     )
 
     print(f"\n✓ Successfully generated post: {output_path}")
