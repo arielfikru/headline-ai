@@ -9,12 +9,16 @@ import requests
 from bs4 import BeautifulSoup
 from PIL import Image, ImageDraw, ImageFont
 from io import BytesIO
-from urllib.parse import urlparse
+from urllib.parse import urlparse, urljoin
 from dotenv import load_dotenv
 from openai import OpenAI
+import json
 
 # Load environment variables
 load_dotenv()
+
+# Import all configuration
+import config
 
 
 class HeadlineGenerator:
@@ -27,21 +31,21 @@ class HeadlineGenerator:
         # Initialize OpenAI client for Gemini
         self.client = OpenAI(
             api_key=api_key,
-            base_url="https://generativelanguage.googleapis.com/v1beta/openai/"
+            base_url=config.GEMINI_BASE_URL
         )
-        self.model = "models/gemini-flash-latest"
+        self.model = config.GEMINI_MODEL
 
         # Create output directory
-        os.makedirs("output", exist_ok=True)
-        os.makedirs("temp_images", exist_ok=True)
+        os.makedirs(config.OUTPUT_DIR, exist_ok=True)
+        os.makedirs(config.TEMP_DIR, exist_ok=True)
 
     def fetch_article_content(self, url):
         """Fetch HTML content from URL"""
         print(f"Fetching article from: {url}")
         headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+            'User-Agent': config.USER_AGENT
         }
-        response = requests.get(url, headers=headers, timeout=30)
+        response = requests.get(url, headers=headers, timeout=config.REQUEST_TIMEOUT)
         response.raise_for_status()
         return response.text
 
@@ -62,7 +66,7 @@ class HeadlineGenerator:
 
         # Priority 3: Article images
         article_imgs = soup.select('article img, .article img, .content img, .post-content img')
-        for img in article_imgs[:5]:  # Get first 5 article images
+        for img in article_imgs[:config.MAX_ARTICLE_IMAGES]:
             if img.get('src'):
                 image_urls.append(img['src'])
             elif img.get('data-src'):  # Lazy loaded images
@@ -70,7 +74,7 @@ class HeadlineGenerator:
 
         # Priority 4: All images with reasonable size attributes
         all_imgs = soup.find_all('img')
-        for img in all_imgs[:10]:
+        for img in all_imgs[:config.MAX_GENERAL_IMAGES]:
             if img.get('src'):
                 # Skip small images (icons, logos, etc)
                 width = img.get('width', '0')
@@ -85,7 +89,6 @@ class HeadlineGenerator:
                     image_urls.append(img['src'])
 
         # Make URLs absolute
-        from urllib.parse import urljoin
         absolute_urls = []
         for url in image_urls:
             if url.startswith('http'):
@@ -111,55 +114,28 @@ class HeadlineGenerator:
         image_candidates = self.extract_images_from_html(html_content, url)
         print(f"Found {len(image_candidates)} image candidates")
 
-        # Truncate HTML if too long (keep first 30000 chars)
-        if len(html_content) > 30000:
-            html_content = html_content[:30000] + "..."
+        # Truncate HTML if too long
+        if len(html_content) > config.MAX_HTML_LENGTH:
+            html_content = html_content[:config.MAX_HTML_LENGTH] + "..."
 
-        prompt = f"""Analisis HTML berita berikut dan buat headline CLICKBAIT yang menarik:
-
-URL: {url}
-
-HTML:
-{html_content}
-
-Tugas kamu:
-1. Baca dan pahami inti berita dari HTML
-2. Buat headline CLICKBAIT yang menarik perhatian, seperti:
-   - "Gak Nyangka! [fakta mengejutkan dari berita]"
-   - "Ternyata Ini Alasan [topik berita]"
-   - "Viral! [topik berita] Bikin Netizen [reaksi]"
-   - "[Angka/Fakta] yang Bikin [reaksi emosional]"
-   - "Berani Coba? [Topik berita]"
-
-3. Headline harus:
-   - Maksimal 150 karakter
-   - Bahasa Indonesia yang gaul dan menarik
-   - Mengandung unsur penasaran (curiosity gap)
-   - TIDAK boleh hanya copy judul asli
-   - Harus membuat orang ingin tahu lebih lanjut
-
-4. Buat juga summary singkat 1 kalimat untuk context
-
-Response dalam format JSON:
-{{
-    "clickbait_title": "headline clickbait yang menarik",
-    "summary": "ringkasan 1 kalimat"
-}}
-
-PENTING: Response HARUS valid JSON tanpa markdown atau text lain!"""
+        # Use prompt template from config
+        prompt = config.AI_PROMPT_TEMPLATE.format(
+            url=url,
+            html_content=html_content,
+            max_title_length=config.MAX_TITLE_LENGTH
+        )
 
         response = self.client.chat.completions.create(
             model=self.model,
             messages=[
                 {"role": "user", "content": prompt}
             ],
-            temperature=0.9,  # Higher temperature for more creative clickbait
+            temperature=config.GEMINI_TEMPERATURE,
         )
 
         result_text = response.choices[0].message.content
 
         # Extract JSON from response
-        import json
         try:
             # Try to find JSON in the response
             json_match = re.search(r'\{.*\}', result_text, re.DOTALL)
@@ -187,12 +163,12 @@ PENTING: Response HARUS valid JSON tanpa markdown atau text lain!"""
         """Download image from URL with validation"""
         print(f"Downloading image from: {image_url}")
         headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+            'User-Agent': config.USER_AGENT,
             'Referer': image_url
         }
 
         try:
-            response = requests.get(image_url, headers=headers, timeout=30, allow_redirects=True)
+            response = requests.get(image_url, headers=headers, timeout=config.REQUEST_TIMEOUT, allow_redirects=True)
             response.raise_for_status()
 
             # Validate it's actually an image
@@ -203,7 +179,7 @@ PENTING: Response HARUS valid JSON tanpa markdown atau text lain!"""
             img = Image.open(BytesIO(response.content))
 
             # Validate image size
-            if img.width < 300 or img.height < 300:
+            if img.width < config.MIN_IMAGE_WIDTH or img.height < config.MIN_IMAGE_HEIGHT:
                 print(f"Warning: Image too small ({img.width}x{img.height}), skipping...")
                 return None
 
@@ -216,7 +192,7 @@ PENTING: Response HARUS valid JSON tanpa markdown atau text lain!"""
         """Create a default background image if no image is found"""
         print("Creating default background image...")
         # Create a gradient background
-        img = Image.new('RGB', (1080, 1350), color='#1a1a1a')
+        img = Image.new('RGB', (config.IMAGE_WIDTH, config.IMAGE_HEIGHT), color='#1a1a1a')
         return img
 
     def wrap_text(self, text, font, max_width):
@@ -251,8 +227,8 @@ PENTING: Response HARUS valid JSON tanpa markdown atau text lain!"""
         """Create the final post design"""
         print("Creating post design...")
 
-        # Resize and crop background image to 1080x1350
-        target_size = (1080, 1350)
+        # Resize and crop background image
+        target_size = (config.IMAGE_WIDTH, config.IMAGE_HEIGHT)
 
         # Calculate resize ratio to cover the entire canvas
         img_ratio = background_img.width / background_img.height
@@ -277,71 +253,68 @@ PENTING: Response HARUS valid JSON tanpa markdown atau text lain!"""
         background_img = background_img.crop((left, top, right, bottom))
 
         # Create a semi-transparent overlay
-        overlay = Image.new('RGBA', target_size, (0, 0, 0, 100))
+        overlay = Image.new('RGBA', target_size, config.OVERLAY_COLOR)
         background_img = background_img.convert('RGBA')
         background_img = Image.alpha_composite(background_img, overlay)
 
         # Create white box for text
         draw = ImageDraw.Draw(background_img)
 
-        # Box dimensions
-        box_margin = 40
-        box_padding = 30
-        box_left = box_margin
-        box_right = target_size[0] - box_margin
+        # Box dimensions from config
+        box_left = config.BOX_MARGIN
+        box_right = target_size[0] - config.BOX_MARGIN
         box_width = box_right - box_left
 
         # Try to load fonts, fallback to default if not available
         try:
-            title_font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 48)
-            source_font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 24)
+            title_font = ImageFont.truetype(config.TITLE_FONT_PATH, config.TITLE_FONT_SIZE)
+            source_font = ImageFont.truetype(config.SOURCE_FONT_PATH, config.SOURCE_FONT_SIZE)
         except:
             print("Custom fonts not found, using default...")
             title_font = ImageFont.load_default()
             source_font = ImageFont.load_default()
 
         # Wrap title text
-        text_max_width = box_width - (box_padding * 2)
+        text_max_width = box_width - (config.BOX_PADDING * 2)
         wrapped_lines = self.wrap_text(title, title_font, text_max_width)
 
         # Calculate text height
         temp_img = Image.new('RGB', (1, 1))
         temp_draw = ImageDraw.Draw(temp_img)
-        line_height = 60
-        total_text_height = len(wrapped_lines) * line_height
+        total_text_height = len(wrapped_lines) * config.LINE_HEIGHT
 
         # Position white box in lower third
-        box_height = total_text_height + (box_padding * 2) + 80  # Extra space for source
-        box_top = target_size[1] - box_height - box_margin - 60
+        box_height = total_text_height + (config.BOX_PADDING * 2) + 80  # Extra space for source
+        box_top = target_size[1] - box_height - config.BOX_MARGIN - 60
         box_bottom = box_top + box_height
 
         # Draw white box with rounded corners
         draw.rounded_rectangle(
             [box_left, box_top, box_right, box_bottom],
-            radius=20,
-            fill=(255, 255, 255, 240)
+            radius=config.BOX_RADIUS,
+            fill=config.WHITE_BOX_COLOR
         )
 
         # Draw text
-        y_position = box_top + box_padding
+        y_position = box_top + config.BOX_PADDING
         for line in wrapped_lines:
             draw.text(
-                (box_left + box_padding, y_position),
+                (box_left + config.BOX_PADDING, y_position),
                 line,
-                fill=(0, 0, 0, 255),
+                fill=config.TEXT_COLOR,
                 font=title_font
             )
-            y_position += line_height
+            y_position += config.LINE_HEIGHT
 
         # Draw branding at bottom left (if provided)
         if brand_text:
-            brand_x = box_left + box_padding
-            brand_y = box_bottom - box_padding - 30
+            brand_x = box_left + config.BOX_PADDING
+            brand_y = box_bottom - config.BOX_PADDING - 30
 
             draw.text(
                 (brand_x, brand_y),
                 brand_text,
-                fill=(50, 50, 50, 255),
+                fill=config.BRAND_COLOR,
                 font=source_font
             )
 
@@ -349,19 +322,19 @@ PENTING: Response HARUS valid JSON tanpa markdown atau text lain!"""
         source_text = f"Source: {source_domain}"
         source_bbox = draw.textbbox((0, 0), source_text, font=source_font)
         source_width = source_bbox[2] - source_bbox[0]
-        source_x = box_right - box_padding - source_width
-        source_y = box_bottom - box_padding - 30
+        source_x = box_right - config.BOX_PADDING - source_width
+        source_y = box_bottom - config.BOX_PADDING - 30
 
         draw.text(
             (source_x, source_y),
             source_text,
-            fill=(100, 100, 100, 255),
+            fill=config.SOURCE_COLOR,
             font=source_font
         )
 
         # Convert back to RGB and save
         background_img = background_img.convert('RGB')
-        background_img.save(output_path, 'PNG', quality=95)
+        background_img.save(output_path, config.OUTPUT_FORMAT, quality=config.OUTPUT_QUALITY)
         print(f"Post saved to: {output_path}")
 
     def generate_post(self, url, output_filename=None, brand_text=None):
@@ -392,8 +365,8 @@ PENTING: Response HARUS valid JSON tanpa markdown atau text lain!"""
 
             if image_candidates:
                 print(f"\nTrying {len(image_candidates)} image candidates...")
-                for i, img_url in enumerate(image_candidates[:5], 1):  # Try first 5
-                    print(f"Attempt {i}/{min(5, len(image_candidates))}: {img_url[:80]}...")
+                for i, img_url in enumerate(image_candidates[:config.MAX_IMAGE_CANDIDATES], 1):
+                    print(f"Attempt {i}/{min(config.MAX_IMAGE_CANDIDATES, len(image_candidates))}: {img_url[:80]}...")
                     background_img = self.download_image(img_url)
                     if background_img:
                         print(f"✓ Successfully downloaded image from candidate {i}")
@@ -409,7 +382,7 @@ PENTING: Response HARUS valid JSON tanpa markdown atau text lain!"""
                 safe_title = re.sub(r'[-\s]+', '-', safe_title)
                 output_filename = f"post_{safe_title}.png"
 
-            output_path = os.path.join("output", output_filename)
+            output_path = os.path.join(config.OUTPUT_DIR, output_filename)
 
             # Create the design
             self.create_post_design(

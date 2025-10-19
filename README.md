@@ -133,21 +133,39 @@ headline-ai/
 
 ## Configuration
 
-### Design Customization
+### All Settings in config.py
 
-You can modify the following in `headline_generator.py`:
+**IMPORTANT:** Semua konfigurasi sekarang ada di `config.py`. JANGAN edit hardcoded values di `headline_generator.py`.
 
-- **Image size**: Change `target_size = (1080, 1350)` in `create_post_design()`
-- **Font sizes**: Modify `title_font` and `source_font` size parameters
-- **Box styling**: Adjust `box_margin`, `box_padding`, colors, and radius
-- **Branding**: Change "FOLKATIVE" text or remove it
+Edit `config.py` untuk mengubah:
 
-### Gemini Model
+- **Image dimensions**: `IMAGE_WIDTH`, `IMAGE_HEIGHT`
+- **Font settings**: `TITLE_FONT_SIZE`, font paths, etc
+- **Colors**: `WHITE_BOX_COLOR`, `TEXT_COLOR`, `BRAND_COLOR`, etc
+- **Box styling**: `BOX_MARGIN`, `BOX_PADDING`, `BOX_RADIUS`
+- **AI settings**: `GEMINI_MODEL`, `GEMINI_TEMPERATURE`
+- **AI Prompt**: `AI_PROMPT_TEMPLATE` - customize clickbait style
+- **Image extraction**: `MIN_IMAGE_WIDTH`, `MAX_IMAGE_CANDIDATES`
+- **Output**: Format, quality, directories
 
-The script uses `gemini-1.5-flash-latest`. You can change this in the `__init__` method:
+**Lihat [CONFIG_GUIDE.md](CONFIG_GUIDE.md) untuk panduan lengkap!**
+
+### Quick Examples
 
 ```python
-self.model = "gemini-1.5-flash-latest"  # or other Gemini models
+# config.py
+
+# Ubah ukuran ke Instagram Square
+IMAGE_WIDTH = 1080
+IMAGE_HEIGHT = 1080
+
+# Ubah style prompt jadi lebih formal
+GEMINI_TEMPERATURE = 0.3
+AI_PROMPT_TEMPLATE = """Buat headline FORMAL..."""
+
+# Ubah warna
+WHITE_BOX_COLOR = (240, 240, 240, 250)
+BRAND_COLOR = (255, 0, 0, 255)  # Red branding
 ```
 
 ## Requirements
