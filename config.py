@@ -37,7 +37,7 @@ BRAND_TEXT = ""
 SHOW_BRAND = False  # Set to False to hide branding
 
 # Gemini settings
-GEMINI_MODEL = "gemini-1.5-flash-latest"
+GEMINI_MODEL = "models/gemini-flash-latest"
 GEMINI_TEMPERATURE = 0.7
 
 # Output settings

@@ -247,7 +247,7 @@ PENTING: Response HARUS valid JSON tanpa markdown atau text lain!"""
 
         return lines
 
-    def create_post_design(self, background_img, title, source_domain, output_path):
+    def create_post_design(self, background_img, title, source_domain, output_path, brand_text=None):
         """Create the final post design"""
         print("Creating post design...")
 
@@ -333,6 +333,18 @@ PENTING: Response HARUS valid JSON tanpa markdown atau text lain!"""
             )
             y_position += line_height
 
+        # Draw branding at bottom left (if provided)
+        if brand_text:
+            brand_x = box_left + box_padding
+            brand_y = box_bottom - box_padding - 30
+
+            draw.text(
+                (brand_x, brand_y),
+                brand_text,
+                fill=(50, 50, 50, 255),
+                font=source_font
+            )
+
         # Draw source at bottom right
         source_text = f"Source: {source_domain}"
         source_bbox = draw.textbbox((0, 0), source_text, font=source_font)
@@ -352,9 +364,12 @@ PENTING: Response HARUS valid JSON tanpa markdown atau text lain!"""
         background_img.save(output_path, 'PNG', quality=95)
         print(f"Post saved to: {output_path}")
 
-    def generate_post(self, url, output_filename=None):
+    def generate_post(self, url, output_filename=None, brand_text=None):
         """Main method to generate post from URL"""
         try:
+            # Get brand text from parameter, environment variable, or None
+            if brand_text is None:
+                brand_text = os.getenv("BRAND_TEXT", None)
             # Extract domain for source
             parsed_url = urlparse(url)
             source_domain = parsed_url.netloc
@@ -401,7 +416,8 @@ PENTING: Response HARUS valid JSON tanpa markdown atau text lain!"""
                 background_img,
                 article_data['title'],
                 source_domain,
-                output_path
+                output_path,
+                brand_text=brand_text
             )
 
             return output_path
@@ -413,20 +429,34 @@ PENTING: Response HARUS valid JSON tanpa markdown atau text lain!"""
 
 def main():
     """Main function for CLI usage"""
-    import sys
+    import argparse
 
-    if len(sys.argv) < 2:
-        print("Usage: python headline_generator.py <article_url> [output_filename]")
-        print("\nExample:")
-        print("  python headline_generator.py https://example.com/article")
-        print("  python headline_generator.py https://example.com/article my_post.png")
-        sys.exit(1)
+    parser = argparse.ArgumentParser(
+        description='Generate social media posts from news articles',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  python headline_generator.py https://example.com/article
+  python headline_generator.py https://example.com/article -o my_post.png
+  python headline_generator.py https://example.com/article --brand "FOLKATIVE"
+  python headline_generator.py https://example.com/article --brand "My Brand" -o output.png
+        """
+    )
 
-    url = sys.argv[1]
-    output_filename = sys.argv[2] if len(sys.argv) > 2 else None
+    parser.add_argument('url', help='Article URL to generate post from')
+    parser.add_argument('-o', '--output', dest='output_filename',
+                        help='Output filename (optional)')
+    parser.add_argument('-b', '--brand', dest='brand_text',
+                        help='Brand text to show in bottom left (optional)')
+
+    args = parser.parse_args()
 
     generator = HeadlineGenerator()
-    output_path = generator.generate_post(url, output_filename)
+    output_path = generator.generate_post(
+        args.url,
+        output_filename=args.output_filename,
+        brand_text=args.brand_text
+    )
 
     print(f"\n✓ Successfully generated post: {output_path}")
 

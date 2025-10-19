@@ -16,14 +16,24 @@ nano .env
 Isi dengan:
 ```
 GEMINI_API_KEY=AIza...your_key_here
+BRAND_TEXT=FOLKATIVE
 ```
+
+**Note**: `BRAND_TEXT` opsional. Kosongkan jika tidak ingin ada branding.
 
 ## Cara Pakai
 
 ### Opsi 1: Command Line (Paling Mudah)
 
 ```bash
+# Tanpa branding
 python headline_generator.py https://www.detik.com/news/berita/d-12345/artikel-berita
+
+# Dengan branding custom
+python headline_generator.py https://www.detik.com/news/berita/d-12345/artikel-berita --brand "FOLKATIVE"
+
+# Dengan branding dan custom filename
+python headline_generator.py https://www.detik.com/news/berita/d-12345/artikel-berita --brand "My Brand" -o my_post.png
 ```
 
 Output: File PNG di folder `output/`
@@ -68,9 +78,9 @@ python my_script.py
 Post yang dihasilkan akan:
 - Ukuran: 1080x1350 px (Instagram portrait)
 - Background: Gambar dari artikel
-- Teks: Judul/ringkasan di kotak putih
+- Teks: Judul clickbait di kotak putih
+- Branding: Custom text di pojok kiri bawah (opsional)
 - Source: Domain artikel di pojok kanan bawah
-- Branding: "FOLKATIVE" di pojok kanan atas
 
 ## Troubleshooting
 

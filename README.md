@@ -33,8 +33,13 @@ GEMINI_API_KEY=your_api_key_here
 ### Command Line
 
 ```bash
-python headline_generator.py <article_url> [output_filename]
+python headline_generator.py <article_url> [options]
 ```
+
+**Options:**
+- `-o, --output FILENAME` - Custom output filename
+- `-b, --brand TEXT` - Brand text to show in bottom left corner
+- `-h, --help` - Show help message
 
 **Examples:**
 
@@ -43,7 +48,13 @@ python headline_generator.py <article_url> [output_filename]
 python headline_generator.py https://www.example.com/news/article
 
 # With custom output filename
-python headline_generator.py https://www.example.com/news/article my_post.png
+python headline_generator.py https://www.example.com/news/article -o my_post.png
+
+# With custom branding
+python headline_generator.py https://www.example.com/news/article --brand "FOLKATIVE"
+
+# With both custom output and branding
+python headline_generator.py https://www.example.com/news/article --brand "My Brand" -o output.png
 ```
 
 ### Python API
@@ -54,14 +65,43 @@ from headline_generator import HeadlineGenerator
 # Initialize generator
 generator = HeadlineGenerator()
 
-# Generate post
+# Generate post (basic)
+output_path = generator.generate_post(
+    url="https://www.example.com/news/article"
+)
+
+# Generate post with custom filename
 output_path = generator.generate_post(
     url="https://www.example.com/news/article",
     output_filename="my_post.png"
 )
 
+# Generate post with custom branding
+output_path = generator.generate_post(
+    url="https://www.example.com/news/article",
+    brand_text="FOLKATIVE"
+)
+
+# Generate post with all options
+output_path = generator.generate_post(
+    url="https://www.example.com/news/article",
+    output_filename="my_post.png",
+    brand_text="My Brand"
+)
+
 print(f"Post created: {output_path}")
 ```
+
+### Using Environment Variables
+
+You can set a default brand text in your `.env` file:
+
+```bash
+GEMINI_API_KEY=your_api_key_here
+BRAND_TEXT=FOLKATIVE
+```
+
+When `BRAND_TEXT` is set in `.env`, it will be used automatically unless overridden by the `--brand` parameter.
 
 ## How It Works
 
@@ -74,8 +114,8 @@ print(f"Post created: {output_path}")
 4. **Design Creation**:
    - Creates white overlay box for text
    - Adds wrapped headline text
-   - Adds source attribution
-   - Adds branding (FOLKATIVE)
+   - Adds branding in bottom left (if specified)
+   - Adds source attribution in bottom right
 5. **Export**: Saves final design as PNG in `output/` folder
 
 ## Project Structure
