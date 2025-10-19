@@ -30,6 +30,32 @@ GEMINI_API_KEY=your_api_key_here
 
 ## Usage
 
+### 🌐 Web Interface (Recommended)
+
+**NEW!** Gunakan Web UI untuk experience yang lebih mudah:
+
+```bash
+# Quick start
+./run_web.sh
+
+# Or manually
+python app.py
+```
+
+Buka browser di `http://localhost:5000`
+
+**Features:**
+- ✨ Dark mode interface yang clean
+- 📱 Responsive design (mobile & desktop)
+- ⚡ Simple mode: Input API key sekali, langsung generate
+- ⚙️ Advanced mode: Edit semua config dari browser
+- 🖼️ Gallery untuk lihat semua hasil
+- 📊 Real-time progress tracking
+
+**Lihat [WEB_UI_GUIDE.md](WEB_UI_GUIDE.md) untuk dokumentasi lengkap!**
+
+---
+
 ### Command Line
 
 ```bash

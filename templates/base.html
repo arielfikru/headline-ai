@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="id" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Headline AI Generator{% endblock %}</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        dark: {
+                            bg: '#0f172a',
+                            card: '#1e293b',
+                            border: '#334155',
+                            hover: '#475569',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Custom scrollbar for dark mode */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 5px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
+    </style>
+</head>
+<body class="bg-dark-bg text-gray-100 min-h-screen">
+    <!-- Navigation -->
+    <nav class="bg-dark-card border-b border-dark-border sticky top-0 z-50">
+        <div class="container mx-auto px-4">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center space-x-8">
+                    <a href="/" class="text-xl font-bold text-white hover:text-blue-400 transition">
+                        📰 Headline AI
+                    </a>
+
+                    <!-- Desktop Navigation -->
+                    <div class="hidden md:flex space-x-4">
+                        <a href="/" class="px-3 py-2 rounded-lg hover:bg-dark-hover transition {% if request.path == '/' %}bg-dark-hover{% endif %}">
+                            Generate
+                        </a>
+                        <a href="/gallery" class="px-3 py-2 rounded-lg hover:bg-dark-hover transition {% if request.path == '/gallery' %}bg-dark-hover{% endif %}">
+                            Gallery
+                        </a>
+                        <a href="/settings" class="px-3 py-2 rounded-lg hover:bg-dark-hover transition {% if request.path == '/settings' %}bg-dark-hover{% endif %}">
+                            Settings
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Mobile menu button -->
+                <button id="mobile-menu-btn" class="md:hidden p-2 rounded-lg hover:bg-dark-hover">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Mobile Navigation -->
+            <div id="mobile-menu" class="hidden md:hidden pb-4">
+                <div class="flex flex-col space-y-2">
+                    <a href="/" class="px-3 py-2 rounded-lg hover:bg-dark-hover transition {% if request.path == '/' %}bg-dark-hover{% endif %}">
+                        Generate
+                    </a>
+                    <a href="/gallery" class="px-3 py-2 rounded-lg hover:bg-dark-hover transition {% if request.path == '/gallery' %}bg-dark-hover{% endif %}">
+                        Gallery
+                    </a>
+                    <a href="/settings" class="px-3 py-2 rounded-lg hover:bg-dark-hover transition {% if request.path == '/settings' %}bg-dark-hover{% endif %}">
+                        Settings
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-8">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-4 right-4 transform translate-y-20 transition-transform duration-300 z-50">
+        <div class="bg-dark-card border border-dark-border rounded-lg shadow-xl p-4 max-w-sm">
+            <div class="flex items-start space-x-3">
+                <div id="toast-icon" class="flex-shrink-0"></div>
+                <div class="flex-1">
+                    <p id="toast-message" class="text-sm"></p>
+                </div>
+                <button onclick="hideToast()" class="flex-shrink-0 text-gray-400 hover:text-white">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Global JavaScript -->
+    <script>
+        // Mobile menu toggle
+        document.getElementById('mobile-menu-btn')?.addEventListener('click', function() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+        });
+
+        // Toast notification
+        function showToast(message, type = 'info') {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toast-message');
+            const toastIcon = document.getElementById('toast-icon');
+
+            toastMessage.textContent = message;
+
+            // Set icon based on type
+            const icons = {
+                success: '<svg class="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>',
+                error: '<svg class="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>',
+                info: '<svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>'
+            };
+
+            toastIcon.innerHTML = icons[type] || icons.info;
+
+            toast.classList.remove('translate-y-20');
+
+            setTimeout(() => {
+                hideToast();
+            }, 5000);
+        }
+
+        function hideToast() {
+            const toast = document.getElementById('toast');
+            toast.classList.add('translate-y-20');
+        }
+
+        // Local storage helpers
+        function saveToLocal(key, value) {
+            localStorage.setItem(key, JSON.stringify(value));
+        }
+
+        function loadFromLocal(key) {
+            const value = localStorage.getItem(key);
+            return value ? JSON.parse(value) : null;
+        }
+    </script>
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>

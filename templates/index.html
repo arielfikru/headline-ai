@@ -1,0 +1,331 @@
+{% extends "base.html" %}
+
+{% block title %}Generate Post - Headline AI{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <!-- Header -->
+    <div class="text-center mb-8">
+        <h1 class="text-4xl font-bold mb-2">Headline AI Generator</h1>
+        <p class="text-gray-400">Transform news articles into engaging social media posts</p>
+    </div>
+
+    <!-- API Key Setup (shown if not set) -->
+    <div id="api-key-section" class="mb-8 {% if settings.get('api_key_set') %}hidden{% endif %}">
+        <div class="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-6">
+            <div class="flex items-start space-x-3">
+                <svg class="w-6 h-6 text-yellow-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                </svg>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold text-yellow-500 mb-2">Setup Required</h3>
+                    <p class="text-gray-300 mb-4">Please enter your Gemini API key to get started. Your key will be saved securely in your local environment.</p>
+
+                    <div class="space-y-3">
+                        <input
+                            type="password"
+                            id="api-key-input"
+                            placeholder="Enter your Gemini API key"
+                            class="w-full px-4 py-3 bg-dark-bg border border-dark-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+                        />
+                        <div class="flex flex-col sm:flex-row gap-2">
+                            <button
+                                onclick="saveApiKey()"
+                                class="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition"
+                            >
+                                Save API Key
+                            </button>
+                            <a
+                                href="https://ai.google.dev/"
+                                target="_blank"
+                                class="flex-1 bg-dark-card hover:bg-dark-hover border border-dark-border text-center px-6 py-3 rounded-lg font-medium transition"
+                            >
+                                Get API Key
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Generator Form -->
+    <div id="generator-section" class="{% if not settings.get('api_key_set') %}opacity-50 pointer-events-none{% endif %}">
+        <div class="bg-dark-card border border-dark-border rounded-lg p-6 md:p-8">
+            <form id="generate-form" class="space-y-6">
+                <!-- Article URL Input -->
+                <div>
+                    <label for="article-url" class="block text-sm font-medium mb-2">
+                        Article URL <span class="text-red-500">*</span>
+                    </label>
+                    <input
+                        type="url"
+                        id="article-url"
+                        placeholder="https://www.detik.com/news/..."
+                        required
+                        class="w-full px-4 py-3 bg-dark-bg border border-dark-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+                    />
+                    <p class="text-sm text-gray-400 mt-1">Paste the full URL of the news article</p>
+                </div>
+
+                <!-- Brand Text (Optional) -->
+                <div>
+                    <label for="brand-text" class="block text-sm font-medium mb-2">
+                        Brand Text <span class="text-gray-500">(Optional)</span>
+                    </label>
+                    <input
+                        type="text"
+                        id="brand-text"
+                        placeholder="e.g., FOLKATIVE"
+                        class="w-full px-4 py-3 bg-dark-bg border border-dark-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+                    />
+                    <p class="text-sm text-gray-400 mt-1">Text to display in the bottom left corner</p>
+                </div>
+
+                <!-- Generate Button -->
+                <button
+                    type="submit"
+                    id="generate-btn"
+                    class="w-full bg-blue-600 hover:bg-blue-700 text-white px-6 py-4 rounded-lg font-semibold text-lg transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+                >
+                    <span id="btn-text">Generate Post</span>
+                    <svg id="btn-icon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                    </svg>
+                </button>
+            </form>
+
+            <!-- Progress Section -->
+            <div id="progress-section" class="hidden mt-6 space-y-3">
+                <div class="bg-dark-bg rounded-lg p-4">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-sm font-medium" id="progress-text">Processing...</span>
+                        <span class="text-sm text-gray-400" id="progress-percent">0%</span>
+                    </div>
+                    <div class="w-full bg-dark-border rounded-full h-2">
+                        <div id="progress-bar" class="bg-blue-600 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <div id="progress-steps" class="space-y-2 text-sm">
+                    <!-- Steps will be added dynamically -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Result Section -->
+        <div id="result-section" class="hidden mt-8">
+            <div class="bg-dark-card border border-dark-border rounded-lg p-6 md:p-8">
+                <h2 class="text-2xl font-bold mb-4">Generated Post</h2>
+
+                <div class="grid md:grid-cols-2 gap-6">
+                    <!-- Image Preview -->
+                    <div>
+                        <div class="bg-dark-bg rounded-lg overflow-hidden">
+                            <img id="result-image" src="" alt="Generated post" class="w-full h-auto"/>
+                        </div>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="space-y-4">
+                        <div class="bg-dark-bg rounded-lg p-4">
+                            <h3 class="font-semibold mb-2">File Info</h3>
+                            <p class="text-sm text-gray-400" id="result-filename">-</p>
+                        </div>
+
+                        <div class="space-y-2">
+                            <a
+                                id="download-btn"
+                                href="#"
+                                download
+                                class="block w-full bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium text-center transition"
+                            >
+                                Download Image
+                            </a>
+
+                            <button
+                                onclick="resetForm()"
+                                class="w-full bg-dark-bg hover:bg-dark-hover border border-dark-border px-6 py-3 rounded-lg font-medium transition"
+                            >
+                                Generate Another
+                            </button>
+
+                            <a
+                                href="/gallery"
+                                class="block w-full bg-dark-bg hover:bg-dark-hover border border-dark-border px-6 py-3 rounded-lg font-medium text-center transition"
+                            >
+                                View Gallery
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Save API key
+    async function saveApiKey() {
+        const apiKey = document.getElementById('api-key-input').value.trim();
+
+        if (!apiKey) {
+            showToast('Please enter an API key', 'error');
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/save-api-key', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({api_key: apiKey})
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                showToast('API key saved successfully!', 'success');
+                document.getElementById('api-key-section').classList.add('hidden');
+                document.getElementById('generator-section').classList.remove('opacity-50', 'pointer-events-none');
+                saveToLocal('api_key_set', true);
+            } else {
+                showToast(data.error || 'Failed to save API key', 'error');
+            }
+        } catch (error) {
+            showToast('Error saving API key: ' + error.message, 'error');
+        }
+    }
+
+    // Generate post
+    document.getElementById('generate-form').addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const url = document.getElementById('article-url').value.trim();
+        const brandText = document.getElementById('brand-text').value.trim();
+
+        if (!url) {
+            showToast('Please enter an article URL', 'error');
+            return;
+        }
+
+        // Show progress
+        const btn = document.getElementById('generate-btn');
+        const btnText = document.getElementById('btn-text');
+        const progressSection = document.getElementById('progress-section');
+        const resultSection = document.getElementById('result-section');
+
+        btn.disabled = true;
+        btnText.textContent = 'Generating...';
+        progressSection.classList.remove('hidden');
+        resultSection.classList.add('hidden');
+
+        // Simulate progress steps
+        updateProgress(20, 'Fetching article content...');
+        addProgressStep('Downloading HTML content', 'in-progress');
+
+        setTimeout(() => {
+            updateProgress(40, 'Analyzing with AI...');
+            addProgressStep('Downloading HTML content', 'complete');
+            addProgressStep('Analyzing content with Gemini AI', 'in-progress');
+        }, 1000);
+
+        setTimeout(() => {
+            updateProgress(60, 'Extracting images...');
+            addProgressStep('Analyzing content with Gemini AI', 'complete');
+            addProgressStep('Finding article images', 'in-progress');
+        }, 2000);
+
+        try {
+            const response = await fetch('/api/generate', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({url, brand_text: brandText})
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                updateProgress(80, 'Creating design...');
+                addProgressStep('Finding article images', 'complete');
+                addProgressStep('Generating post design', 'in-progress');
+
+                setTimeout(() => {
+                    updateProgress(100, 'Complete!');
+                    addProgressStep('Generating post design', 'complete');
+
+                    // Show result
+                    document.getElementById('result-image').src = data.url + '?t=' + Date.now();
+                    document.getElementById('result-filename').textContent = data.filename;
+                    document.getElementById('download-btn').href = data.url;
+                    document.getElementById('download-btn').download = data.filename;
+
+                    resultSection.classList.remove('hidden');
+                    showToast('Post generated successfully!', 'success');
+
+                    // Scroll to result
+                    resultSection.scrollIntoView({behavior: 'smooth', block: 'nearest'});
+                }, 500);
+            } else {
+                throw new Error(data.error || 'Generation failed');
+            }
+        } catch (error) {
+            showToast('Error: ' + error.message, 'error');
+            updateProgress(0, 'Failed');
+            addProgressStep('Error occurred', 'error');
+        } finally {
+            btn.disabled = false;
+            btnText.textContent = 'Generate Post';
+        }
+    });
+
+    function updateProgress(percent, text) {
+        document.getElementById('progress-bar').style.width = percent + '%';
+        document.getElementById('progress-percent').textContent = percent + '%';
+        document.getElementById('progress-text').textContent = text;
+    }
+
+    function addProgressStep(text, status) {
+        const stepsContainer = document.getElementById('progress-steps');
+        const existingStep = Array.from(stepsContainer.children).find(el => el.textContent.includes(text));
+
+        if (existingStep) {
+            // Update existing step
+            const icon = status === 'complete' ? '✓' :
+                        status === 'error' ? '✗' : '⋯';
+            const colorClass = status === 'complete' ? 'text-green-500' :
+                              status === 'error' ? 'text-red-500' : 'text-blue-500';
+
+            existingStep.innerHTML = `<span class="${colorClass}">${icon}</span> ${text}`;
+        } else {
+            // Add new step
+            const step = document.createElement('div');
+            step.className = 'flex items-center space-x-2 text-gray-400';
+
+            const icon = status === 'in-progress' ? '⋯' : '○';
+            const colorClass = status === 'in-progress' ? 'text-blue-500' : 'text-gray-500';
+
+            step.innerHTML = `<span class="${colorClass}">${icon}</span> <span>${text}</span>`;
+            stepsContainer.appendChild(step);
+        }
+    }
+
+    function resetForm() {
+        document.getElementById('generate-form').reset();
+        document.getElementById('progress-section').classList.add('hidden');
+        document.getElementById('result-section').classList.add('hidden');
+        document.getElementById('progress-steps').innerHTML = '';
+        updateProgress(0, 'Ready');
+    }
+
+    // Check if API key is already set
+    window.addEventListener('load', function() {
+        const apiKeySet = loadFromLocal('api_key_set');
+        if (apiKeySet) {
+            document.getElementById('api-key-section').classList.add('hidden');
+            document.getElementById('generator-section').classList.remove('opacity-50', 'pointer-events-none');
+        }
+    });
+</script>
+{% endblock %}

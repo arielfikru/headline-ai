@@ -1,0 +1,295 @@
+{% extends "base.html" %}
+
+{% block title %}Settings - Headline AI{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <!-- Header -->
+    <div class="mb-8">
+        <h1 class="text-4xl font-bold mb-2">Advanced Settings</h1>
+        <p class="text-gray-400">Customize generation parameters and design</p>
+    </div>
+
+    <!-- Warning -->
+    <div class="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-4 mb-6">
+        <div class="flex items-start space-x-3">
+            <svg class="w-5 h-5 text-yellow-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+            </svg>
+            <div>
+                <h3 class="font-semibold text-yellow-500">Advanced User Settings</h3>
+                <p class="text-sm text-gray-300">These settings modify the core configuration. Changes will persist across sessions.</p>
+            </div>
+        </div>
+    </div>
+
+    <form id="settings-form" class="space-y-6">
+        <!-- Image Dimensions -->
+        <div class="bg-dark-card border border-dark-border rounded-lg p-6">
+            <h2 class="text-xl font-semibold mb-4 flex items-center">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                </svg>
+                Image Dimensions
+            </h2>
+
+            <div class="grid md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium mb-2">Width (px)</label>
+                    <input type="number" name="IMAGE_WIDTH" value="{{ config.IMAGE_WIDTH }}"
+                           class="w-full px-4 py-2 bg-dark-bg border border-dark-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"/>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Height (px)</label>
+                    <input type="number" name="IMAGE_HEIGHT" value="{{ config.IMAGE_HEIGHT }}"
+                           class="w-full px-4 py-2 bg-dark-bg border border-dark-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"/>
+                </div>
+            </div>
+
+            <div class="mt-4 grid grid-cols-2 md:grid-cols-4 gap-2">
+                <button type="button" onclick="setPreset(1080, 1350)" class="px-3 py-2 bg-dark-bg hover:bg-dark-hover border border-dark-border rounded-lg text-sm transition">
+                    Instagram Portrait
+                </button>
+                <button type="button" onclick="setPreset(1080, 1080)" class="px-3 py-2 bg-dark-bg hover:bg-dark-hover border border-dark-border rounded-lg text-sm transition">
+                    Instagram Square
+                </button>
+                <button type="button" onclick="setPreset(1080, 1920)" class="px-3 py-2 bg-dark-bg hover:bg-dark-hover border border-dark-border rounded-lg text-sm transition">
+                    Instagram Story
+                </button>
+                <button type="button" onclick="setPreset(1200, 675)" class="px-3 py-2 bg-dark-bg hover:bg-dark-hover border border-dark-border rounded-lg text-sm transition">
+                    Twitter
+                </button>
+            </div>
+        </div>
+
+        <!-- Typography -->
+        <div class="bg-dark-card border border-dark-border rounded-lg p-6">
+            <h2 class="text-xl font-semibold mb-4 flex items-center">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/>
+                </svg>
+                Typography
+            </h2>
+
+            <div class="grid md:grid-cols-3 gap-4">
+                <div>
+                    <label class="block text-sm font-medium mb-2">Title Font Size</label>
+                    <input type="number" name="TITLE_FONT_SIZE" value="{{ config.TITLE_FONT_SIZE }}"
+                           class="w-full px-4 py-2 bg-dark-bg border border-dark-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"/>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Source Font Size</label>
+                    <input type="number" name="SOURCE_FONT_SIZE" value="{{ config.SOURCE_FONT_SIZE }}"
+                           class="w-full px-4 py-2 bg-dark-bg border border-dark-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"/>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Line Height</label>
+                    <input type="number" name="LINE_HEIGHT" value="{{ config.LINE_HEIGHT }}"
+                           class="w-full px-4 py-2 bg-dark-bg border border-dark-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"/>
+                </div>
+            </div>
+
+            <div class="mt-4">
+                <label class="block text-sm font-medium mb-2">Max Title Length</label>
+                <input type="number" name="MAX_TITLE_LENGTH" value="{{ config.MAX_TITLE_LENGTH }}"
+                       class="w-full px-4 py-2 bg-dark-bg border border-dark-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"/>
+            </div>
+        </div>
+
+        <!-- Layout & Spacing -->
+        <div class="bg-dark-card border border-dark-border rounded-lg p-6">
+            <h2 class="text-xl font-semibold mb-4 flex items-center">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"/>
+                </svg>
+                Layout & Spacing
+            </h2>
+
+            <div class="grid md:grid-cols-3 gap-4">
+                <div>
+                    <label class="block text-sm font-medium mb-2">Box Margin</label>
+                    <input type="number" name="BOX_MARGIN" value="{{ config.BOX_MARGIN }}"
+                           class="w-full px-4 py-2 bg-dark-bg border border-dark-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"/>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Box Padding</label>
+                    <input type="number" name="BOX_PADDING" value="{{ config.BOX_PADDING }}"
+                           class="w-full px-4 py-2 bg-dark-bg border border-dark-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"/>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Box Radius</label>
+                    <input type="number" name="BOX_RADIUS" value="{{ config.BOX_RADIUS }}"
+                           class="w-full px-4 py-2 bg-dark-bg border border-dark-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"/>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI Settings -->
+        <div class="bg-dark-card border border-dark-border rounded-lg p-6">
+            <h2 class="text-xl font-semibold mb-4 flex items-center">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+                </svg>
+                AI Settings
+            </h2>
+
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium mb-2">
+                        Temperature (Creativity)
+                        <span class="text-gray-400 font-normal ml-2">0.0 = Conservative, 1.0 = Creative</span>
+                    </label>
+                    <input type="range" name="GEMINI_TEMPERATURE" min="0" max="1" step="0.1"
+                           value="{{ config.GEMINI_TEMPERATURE }}"
+                           oninput="document.getElementById('temp-value').textContent = this.value"
+                           class="w-full"/>
+                    <div class="text-right text-sm text-gray-400 mt-1">
+                        Current: <span id="temp-value">{{ config.GEMINI_TEMPERATURE }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Image Extraction -->
+        <div class="bg-dark-card border border-dark-border rounded-lg p-6">
+            <h2 class="text-xl font-semibold mb-4 flex items-center">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                </svg>
+                Image Extraction
+            </h2>
+
+            <div class="grid md:grid-cols-3 gap-4">
+                <div>
+                    <label class="block text-sm font-medium mb-2">Min Width</label>
+                    <input type="number" name="MIN_IMAGE_WIDTH" value="{{ config.MIN_IMAGE_WIDTH }}"
+                           class="w-full px-4 py-2 bg-dark-bg border border-dark-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"/>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Min Height</label>
+                    <input type="number" name="MIN_IMAGE_HEIGHT" value="{{ config.MIN_IMAGE_HEIGHT }}"
+                           class="w-full px-4 py-2 bg-dark-bg border border-dark-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"/>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Max Candidates</label>
+                    <input type="number" name="MAX_IMAGE_CANDIDATES" value="{{ config.MAX_IMAGE_CANDIDATES }}"
+                           class="w-full px-4 py-2 bg-dark-bg border border-dark-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"/>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI Prompt Template -->
+        <div class="bg-dark-card border border-dark-border rounded-lg p-6">
+            <h2 class="text-xl font-semibold mb-4 flex items-center">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                </svg>
+                AI Prompt Template
+            </h2>
+
+            <div>
+                <label class="block text-sm font-medium mb-2">
+                    Prompt
+                    <span class="text-gray-400 font-normal ml-2">Use {url}, {html_content}, {max_title_length}</span>
+                </label>
+                <textarea
+                    name="AI_PROMPT_TEMPLATE"
+                    rows="10"
+                    class="w-full px-4 py-3 bg-dark-bg border border-dark-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none font-mono text-sm"
+                >{{ config.AI_PROMPT_TEMPLATE }}</textarea>
+                <p class="text-xs text-gray-400 mt-2">Edit the AI prompt to change the style of generated headlines</p>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex flex-col sm:flex-row gap-3">
+            <button
+                type="submit"
+                class="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold transition"
+            >
+                Save Settings
+            </button>
+
+            <button
+                type="button"
+                onclick="resetToDefaults()"
+                class="flex-1 bg-dark-bg hover:bg-dark-hover border border-dark-border px-6 py-3 rounded-lg font-semibold transition"
+            >
+                Reset to Defaults
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function setPreset(width, height) {
+        document.querySelector('[name="IMAGE_WIDTH"]').value = width;
+        document.querySelector('[name="IMAGE_HEIGHT"]').value = height;
+    }
+
+    function resetToDefaults() {
+        if (!confirm('Reset all settings to default values?')) {
+            return;
+        }
+
+        // Set default values
+        document.querySelector('[name="IMAGE_WIDTH"]').value = 1080;
+        document.querySelector('[name="IMAGE_HEIGHT"]').value = 1350;
+        document.querySelector('[name="TITLE_FONT_SIZE"]').value = 48;
+        document.querySelector('[name="SOURCE_FONT_SIZE"]').value = 24;
+        document.querySelector('[name="LINE_HEIGHT"]').value = 60;
+        document.querySelector('[name="MAX_TITLE_LENGTH"]').value = 150;
+        document.querySelector('[name="BOX_MARGIN"]').value = 40;
+        document.querySelector('[name="BOX_PADDING"]').value = 30;
+        document.querySelector('[name="BOX_RADIUS"]').value = 20;
+        document.querySelector('[name="GEMINI_TEMPERATURE"]').value = 0.9;
+        document.querySelector('[name="MIN_IMAGE_WIDTH"]').value = 300;
+        document.querySelector('[name="MIN_IMAGE_HEIGHT"]').value = 300;
+        document.querySelector('[name="MAX_IMAGE_CANDIDATES"]').value = 5;
+
+        showToast('Settings reset to defaults', 'info');
+    }
+
+    document.getElementById('settings-form').addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const formData = new FormData(e.target);
+        const data = Object.fromEntries(formData.entries());
+
+        // Convert numeric fields
+        const numericFields = [
+            'IMAGE_WIDTH', 'IMAGE_HEIGHT', 'TITLE_FONT_SIZE', 'SOURCE_FONT_SIZE',
+            'LINE_HEIGHT', 'MAX_TITLE_LENGTH', 'BOX_MARGIN', 'BOX_PADDING', 'BOX_RADIUS',
+            'MIN_IMAGE_WIDTH', 'MIN_IMAGE_HEIGHT', 'MAX_IMAGE_CANDIDATES'
+        ];
+
+        numericFields.forEach(field => {
+            if (data[field]) {
+                data[field] = parseInt(data[field]);
+            }
+        });
+
+        data.GEMINI_TEMPERATURE = parseFloat(data.GEMINI_TEMPERATURE);
+
+        try {
+            const response = await fetch('/api/save-settings', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(data)
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                showToast('Settings saved successfully! Restart the server for changes to take effect.', 'success');
+            } else {
+                showToast(result.error || 'Failed to save settings', 'error');
+            }
+        } catch (error) {
+            showToast('Error: ' + error.message, 'error');
+        }
+    });
+</script>
+{% endblock %}
